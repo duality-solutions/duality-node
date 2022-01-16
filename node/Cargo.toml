@@ -1,7 +1,7 @@
 [package]
 name = 'node-duality'
 version = '4.0.0-dev'
-description = 'A fresh FRAME-based Substrate node, ready for hacking.'
+description = "A reference implementation for the Duality Network."
 authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
 homepage = 'https://duality.network/'
 edition = '2021'
