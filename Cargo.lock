@@ -3486,13 +3486,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-template"
+name = "node-duality"
 version = "4.0.0-dev"
 dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "jsonrpc-core",
- "node-template-runtime",
+ "node-duality-runtime",
  "pallet-transaction-payment-rpc",
  "sc-basic-authorship",
  "sc-cli",
@@ -3523,7 +3523,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-template-runtime"
+name = "node-duality-runtime"
 version = "4.0.0-dev"
 dependencies = [
  "frame-benchmarking",

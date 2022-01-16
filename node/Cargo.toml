@@ -1,17 +1,17 @@
 [package]
-name = 'node-template'
+name = 'node-duality'
 version = '4.0.0-dev'
 description = 'A fresh FRAME-based Substrate node, ready for hacking.'
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
-homepage = 'https://substrate.io/'
+authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
+homepage = 'https://duality.network/'
 edition = '2021'
 license = 'Unlicense'
 publish = false
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
+repository = 'https://github.com/dualitynetwork/duality-node/'
 build = 'build.rs'
 
 [[bin]]
-name = 'node-template'
+name = 'node-duality'
 
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
@@ -21,7 +21,7 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'devhub/latest'
 version = '3.0.0'
 
-[dependencies.node-template-runtime]
+[dependencies.node-duality-runtime]
 path = '../runtime'
 version = '4.0.0-dev'
 
@@ -169,4 +169,4 @@ version = '4.0.0-dev'
 
 [features]
 default = []
-runtime-benchmarks = ['node-template-runtime/runtime-benchmarks']
+runtime-benchmarks = ['node-duality-runtime/runtime-benchmarks']
