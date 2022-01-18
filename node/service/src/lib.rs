@@ -14,7 +14,7 @@ use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 
 #[cfg(feature = "with-template-runtime")]
-use template_runtime::{opaque::Block, RuntimeApi};
+use template_runtime::{Block, RuntimeApi};
 
 pub mod chain_spec;
 

@@ -23,7 +23,8 @@ color-eyre = { version = "0.5.11", default-features = false }
 members = [
     'node/cli',
     'node/service',
-    'runtime/template'
+    'runtime/template',
+    'runtime/primitives',
 ]
 
 # make sure dev builds with backtrace do
