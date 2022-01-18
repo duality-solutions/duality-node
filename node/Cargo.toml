@@ -21,8 +21,8 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'devhub/latest'
 version = '3.0.0'
 
-[dependencies.node-duality-runtime]
-path = '../runtime'
+[dependencies.template-runtime]
+path = '../runtime/template'
 version = '4.0.0-dev'
 
 [dependencies]
@@ -169,4 +169,4 @@ version = '4.0.0-dev'
 
 [features]
 default = []
-runtime-benchmarks = ['node-duality-runtime/runtime-benchmarks']
+runtime-benchmarks = ['template-runtime/runtime-benchmarks']
