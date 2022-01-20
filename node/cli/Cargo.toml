@@ -23,6 +23,7 @@ structopt = '0.3.8'
 
 frame-benchmarking = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 frame-benchmarking-cli = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+frame-system-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest',  version = '4.0.0-dev' }
 pallet-transaction-payment-rpc = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 
 sc-basic-authorship = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
@@ -60,6 +61,6 @@ with-template-runtime = [
     "template-runtime",
     "duality-service/with-template-runtime",
 ]
-runtime-benchmarks = [ 
+runtime-benchmarks = [
     'duality-service/runtime-benchmarks',
 ]

@@ -19,8 +19,11 @@ jsonrpc-core = '18.0.0'
 structopt = '0.3.8'
 
 pallet-transaction-payment-rpc = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+pallet-transaction-payment-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest',  version = '4.0.0-dev' }
+frame-system-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest',  version = '4.0.0-dev' }
 
 sc-basic-authorship = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-chain-spec = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 sc-client-api = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 sc-consensus = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
 sc-consensus-aura = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
@@ -41,8 +44,13 @@ sp-consensus = { git ='https://github.com/paritytech/substrate.git', tag = 'devh
 sp-consensus-aura = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
 sp-core = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 sp-finality-grandpa = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-offchain = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 sp-runtime = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-session = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-storage = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 sp-timestamp = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-transaction-pool = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-trie = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 
 substrate-frame-rpc-system = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
 

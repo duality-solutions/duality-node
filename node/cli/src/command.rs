@@ -2,13 +2,14 @@ use crate::{
 	cli::{Cli, Subcommand},
 };
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
-use sc_service::PartialComponents;
 
 #[cfg(feature = "with-template-runtime")]
 use template_runtime as TemplateRuntime;
 
 #[cfg(feature = "with-template-runtime")]
 use duality_service::chain_spec::template as TemplateChain;
+
+use duality_service::IdentifyVariant;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -56,62 +57,84 @@ pub fn run() -> sc_cli::Result<()> {
 
 	match &cli.subcommand {
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+			runner.sync_run(|config| {
+				cmd.run(config.chain_spec, config.network)
+			})
 		},
+
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, import_queue, .. } =
-					duality_service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _, import_queue, task_manager) = duality_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
-		},
+		}
+
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, .. } = duality_service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _, _, task_manager) = duality_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
-		},
+		}
+
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, .. } = duality_service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _, _, task_manager) = duality_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
-		},
+		}
+
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, import_queue, .. } =
-					duality_service::new_partial(&config)?;
+			runner.async_run(|mut config| {
+				let (client, _, import_queue, task_manager) = duality_service::new_chain_ops(&mut config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
-		},
+		}
+
 		Some(Subcommand::PurgeChain(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.sync_run(|config| cmd.run(config.database))
-		},
-		Some(Subcommand::Revert(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|config| {
-				let PartialComponents { client, task_manager, backend, .. } =
-					duality_service::new_partial(&config)?;
-				Ok((cmd.run(client, backend), task_manager))
+			runner.sync_run(|config| {
+				cmd.run(config.database)
 			})
 		},
-		Some(Subcommand::Benchmark(cmd)) =>
+
+		Some(Subcommand::Revert(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			runner.async_run(|mut config| {
+				let (client, backend, _, task_manager) = duality_service::new_chain_ops(&mut config)?;
+				Ok((cmd.run(client, backend), task_manager))
+			})
+		}
+
+		Some(Subcommand::Benchmark(cmd)) => {
 			if cfg!(feature = "runtime-benchmarks") {
 				let runner = cli.create_runner(cmd)?;
-				#[cfg(feature = "with-template-runtime")]
-				runner.sync_run(|config| cmd.run::<TemplateRuntime::Block, duality_service::TemplateExecutor>(config))
+				let chain_spec = &runner.config().chain_spec;
+				match chain_spec {
+					#[cfg(feature = "with-template-runtime")]
+					spec if spec.is_template() => {
+						return runner.sync_run(|config| {
+							cmd.run::<TemplateRuntime::Block, duality_service::TemplateExecutor>(
+								config
+							)
+						})
+					},
+
+					_ => panic!("invalid chain spec"),
+				}
 			} else {
 				Err("Benchmarking wasn't enabled when building the node. You can enable it with \
 				     `--features runtime-benchmarks`."
 					.into())
-			},
+			}
+		},
+
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {

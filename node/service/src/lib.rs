@@ -1,17 +1,27 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
+mod client;
 mod rpc;
 
+use crate::client::RuntimeApiCollection;
 use sc_client_api::ExecutorProvider;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 pub use sc_executor::NativeElseWasmExecutor;
 use sc_finality_grandpa::SharedVoterState;
 use sc_keystore::LocalKeystore;
-use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
+use sc_service::{
+	error::Error as ServiceError, Configuration, TaskManager,
+	PartialComponents, ChainSpec, NativeExecutionDispatch
+};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_consensus::SlotData;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
+use sp_runtime::traits::BlakeTwo256;
+use sp_trie::PrefixedMemoryDB;
+use sp_api::ConstructRuntimeApi;
+
+use client::Client;
 
 use runtime_primitives::Block;
 
@@ -20,8 +30,8 @@ use template_runtime::RuntimeApi as TemplateRuntimeApi;
 
 pub mod chain_spec;
 
-type FullClient =
-	sc_service::TFullClient<Block, TemplateRuntimeApi, NativeElseWasmExecutor<TemplateExecutor>>;
+type FullClient<RuntimeApi, Executor> =
+	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
@@ -47,28 +57,93 @@ impl sc_executor::NativeExecutionDispatch for TemplateExecutor {
 	}
 }
 
-pub fn new_partial(
+/// Can be called for a `Configuration` to check if it is a configuration for
+/// the network.
+pub trait IdentifyVariant {
+	/// Returns `true` if this is a configuration for a template network.
+	fn is_template(&self) -> bool;
+}
+
+impl IdentifyVariant for Box<dyn ChainSpec> {
+	fn is_template(&self) -> bool {
+		self.id().ends_with("template")
+	}
+}
+
+/// Builds a new object suitable for chain operations.
+pub fn new_chain_ops(
+	mut config: &mut Configuration,
+) -> Result<
+	(
+		Arc<Client>,
+		Arc<FullBackend>,
+		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		TaskManager,
+	),
+	ServiceError,
+> {
+	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+	if config.chain_spec.is_template() {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue,
+			task_manager,
+			..
+		} = new_partial::<TemplateRuntimeApi, TemplateExecutor>(
+			config,
+		)?;
+		Ok((
+			Arc::new(Client::Template(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	} else {
+		let PartialComponents {
+			client,
+			backend,
+			import_queue	,
+			task_manager,
+			..
+		} = new_partial::<TemplateRuntimeApi, TemplateExecutor>(
+			config,
+		)?;
+		Ok((
+			Arc::new(Client::Template(client)),
+			backend,
+			import_queue,
+			task_manager,
+		))
+	}
+}
+
+pub fn new_partial<RuntimeApi, Executor>(
 	config: &Configuration,
 ) -> Result<
 	sc_service::PartialComponents<
-		FullClient,
+		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		FullSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient>,
-		sc_transaction_pool::FullPool<Block, FullClient>,
+		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
 			sc_finality_grandpa::GrandpaBlockImport<
 				FullBackend,
 				Block,
-				FullClient,
+				FullClient<RuntimeApi, Executor>,
 				FullSelectChain,
 			>,
-			sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
+			sc_finality_grandpa::LinkHalf<Block, FullClient<RuntimeApi, Executor>, FullSelectChain>,
 			Option<Telemetry>,
 		),
 	>,
 	ServiceError,
-> {
+> where
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+	{
 	if config.keystore_remote.is_some() {
 		return Err(ServiceError::Other(format!("Remote Keystores are not supported.")))
 	}
@@ -84,14 +159,14 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
-	let executor = NativeElseWasmExecutor::<TemplateExecutor>::new(
+	let executor = NativeElseWasmExecutor::<Executor>::new(
 		config.wasm_method,
 		config.default_heap_pages,
 		config.max_runtime_instances,
 	);
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, TemplateRuntimeApi, _>(
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			&config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
@@ -168,6 +243,8 @@ fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
 
 /// Builds a new service for a full client.
 pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> {
+	// FIXME: Should gracefully fail!
+	#[cfg(feature = "with-template-runtime")]
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -177,7 +254,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
-	} = new_partial(&config)?;
+	} = new_partial::<TemplateRuntimeApi, crate::TemplateExecutor>(&config)?;
 
 	if let Some(url) = &config.keystore_remote {
 		match remote_keystore(url) {
@@ -231,8 +308,11 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 
 		Box::new(move |deny_unsafe, _| {
 			let deps =
-				crate::rpc::FullDeps { client: client.clone(), pool: pool.clone(), deny_unsafe };
-
+				crate::rpc::FullDeps {
+					client: client.clone(),
+					pool: pool.clone(),
+					deny_unsafe
+				};
 			Ok(crate::rpc::create_full(deps))
 		})
 	};
