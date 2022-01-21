@@ -1274,6 +1274,7 @@ version = "4.0.0-dev"
 dependencies = [
  "jsonrpc-core",
  "pallet-transaction-payment-rpc",
+ "runtime-primitives",
  "sc-basic-authorship",
  "sc-client-api",
  "sc-consensus",
@@ -4790,6 +4791,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "runtime-primitives"
+version = "4.0.0-dev"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6869,6 +6882,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
+ "runtime-primitives",
  "scale-info",
  "sp-api",
  "sp-block-builder",

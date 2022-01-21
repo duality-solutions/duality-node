@@ -46,6 +46,8 @@ sp-std = { default-features = false, git = 'https://github.com/paritytech/substr
 sp-transaction-pool = { default-features = false, git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest',  version = '4.0.0-dev' }
 sp-version = { default-features = false, git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest',  version = '4.0.0-dev' }
 
+runtime-primitives = { default-features = false, path = "../primitives", version = '4.0.0-dev' }
+
 [features]
 default = ['std']
 runtime-benchmarks = [
@@ -73,6 +75,7 @@ std = [
     'pallet-timestamp/std',
     'pallet-transaction-payment-rpc-runtime-api/std',
     'pallet-transaction-payment/std',
+    'runtime-primitives/std',
     'sp-api/std',
     'sp-block-builder/std',
     'sp-consensus-aura/std',

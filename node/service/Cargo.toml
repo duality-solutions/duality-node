@@ -13,6 +13,7 @@ substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.
 
 [dependencies]
 template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+runtime-primitives = { path = "../../runtime/primitives", version = '4.0.0-dev' }
 
 jsonrpc-core = '18.0.0'
 structopt = '0.3.8'
