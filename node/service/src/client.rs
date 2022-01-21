@@ -18,7 +18,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Block as BlockT},
 	Justifications,
 };
-use sp_storage::{ChildInfo, PrefixedStorageKey, StorageData, StorageKey};
+use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
 #[cfg(feature = "with-template-runtime")]
@@ -251,24 +251,6 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
 		match_client!(self, storage_keys_iter(id, prefix, start_key))
-	}
-
-	fn max_key_changes_range(
-		&self,
-    	first: NumberFor<Block>,
-    	last: BlockId<Block>,
-	) -> sp_blockchain::Result<Option<(NumberFor<Block>, BlockId<Block>)>> {
-		match_client!(self, max_key_changes_range(first, last))
-	}
-
-	fn key_changes(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-		storage_key: Option<&PrefixedStorageKey>,
-		key: &StorageKey
-	) -> sp_blockchain::Result<Vec<(NumberFor<Block>, u32)>> {
-		match_client!(self, key_changes(first, last, storage_key, key))
 	}
 
 	fn child_storage(
