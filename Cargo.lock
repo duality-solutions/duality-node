@@ -1263,9 +1263,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "duality-rpc"
+version = "4.0.0-dev"
+dependencies = [
+ "frame-system-rpc-runtime-api",
+ "jsonrpc-core",
+ "pallet-transaction-payment-rpc",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "runtime-primitives",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sc-transaction-pool-api",
+ "sp-api",
+ "sp-block-builder",
+ "sp-blockchain",
+ "sp-consensus",
+ "substrate-build-script-utils",
+ "substrate-frame-rpc-system",
+]
+
+[[package]]
 name = "duality-service"
 version = "4.0.0-dev"
 dependencies = [
+ "duality-rpc",
  "frame-system-rpc-runtime-api",
  "jsonrpc-core",
  "pallet-transaction-payment-rpc",

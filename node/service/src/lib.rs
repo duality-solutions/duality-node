@@ -1,7 +1,6 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 mod client;
-mod rpc;
 
 use crate::client::RuntimeApiCollection;
 use sc_client_api::ExecutorProvider;
@@ -308,12 +307,12 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 
 		Box::new(move |deny_unsafe, _| {
 			let deps =
-				crate::rpc::FullDeps {
+				duality_rpc::FullDeps {
 					client: client.clone(),
 					pool: pool.clone(),
 					deny_unsafe
 				};
-			Ok(crate::rpc::create_full(deps))
+			Ok(duality_rpc::create_full(deps))
 		})
 	};
 
