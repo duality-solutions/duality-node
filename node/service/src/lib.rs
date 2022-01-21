@@ -1,6 +1,7 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
-use template_runtime::{self, opaque::Block, RuntimeApi};
+mod rpc;
+
 use sc_client_api::ExecutorProvider;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 pub use sc_executor::NativeElseWasmExecutor;
@@ -12,10 +13,22 @@ use sp_consensus::SlotData;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 
-// Our native executor instance.
-pub struct ExecutorDispatch;
+#[cfg(feature = "with-template-runtime")]
+use template_runtime::{opaque::Block, RuntimeApi};
 
-impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
+pub mod chain_spec;
+
+type FullClient =
+	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<TemplateExecutor>>;
+type FullBackend = sc_service::TFullBackend<Block>;
+type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
+
+#[cfg(feature = "with-template-runtime")]
+// Our native executor instance.
+pub struct TemplateExecutor;
+
+#[cfg(feature = "with-template-runtime")]
+impl sc_executor::NativeExecutionDispatch for TemplateExecutor {
 	/// Only enable the benchmarking host functions when we actually want to benchmark.
 	#[cfg(feature = "runtime-benchmarks")]
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
@@ -31,11 +44,6 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 		template_runtime::native_version()
 	}
 }
-
-type FullClient =
-	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
-type FullBackend = sc_service::TFullBackend<Block>;
-type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 pub fn new_partial(
 	config: &Configuration,
@@ -74,7 +82,7 @@ pub fn new_partial(
 		})
 		.transpose()?;
 
-	let executor = NativeElseWasmExecutor::<ExecutorDispatch>::new(
+	let executor = NativeElseWasmExecutor::<TemplateExecutor>::new(
 		config.wasm_method,
 		config.default_heap_pages,
 		config.max_runtime_instances,

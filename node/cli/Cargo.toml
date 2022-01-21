@@ -1,0 +1,65 @@
+[package]
+name = 'duality-cli'
+version = '4.0.0-dev'
+description = "A reference implementation for the Duality Network."
+authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
+edition = '2021'
+publish = false
+repository = 'https://github.com/dualitynetwork/duality-node/'
+build = 'build.rs'
+
+[package.metadata.docs.rs]
+targets = ['x86_64-unknown-linux-gnu']
+
+[build-dependencies]
+substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '3.0.0' }
+
+[dependencies]
+duality-service = { path = '../service', version = '4.0.0-dev' }
+template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+
+jsonrpc-core = '18.0.0'
+structopt = '0.3.8'
+
+frame-benchmarking = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+frame-benchmarking-cli = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+pallet-transaction-payment-rpc = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+
+sc-basic-authorship = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-cli = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev', features = ['wasmtime'] }
+sc-client-api = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sc-consensus = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-consensus-aura = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-executor = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev', features = ['wasmtime'] }
+sc-finality-grandpa = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-keystore = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sc-rpc = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sc-rpc-api = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sc-service = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev', features = ['wasmtime'] }
+sc-telemetry = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sc-transaction-pool = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sc-transaction-pool-api = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+
+sp-api = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-block-builder = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-blockchain = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-consensus = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sp-consensus-aura = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '0.10.0-dev' }
+sp-core = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-finality-grandpa = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-runtime = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+sp-timestamp = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+
+substrate-frame-rpc-system = { git ='https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '4.0.0-dev' }
+
+[features]
+cli = []
+default = [ "wasmtime", "cli" ]
+wasmtime = [ "sc-cli/wasmtime" ]
+with-template-runtime = [
+    "template-runtime",
+    "duality-service/with-template-runtime",
+]
+runtime-benchmarks = [ 
+    'duality-service/runtime-benchmarks',
+]
