@@ -8,6 +8,10 @@ publish = false
 repository = 'https://github.com/dualitynetwork/duality-node/'
 build = 'build.rs'
 
+[[bin]]
+name = "duality"
+path = "src/main.rs"
+
 [package.metadata.docs.rs]
 targets = ['x86_64-unknown-linux-gnu']
 
@@ -15,8 +19,9 @@ targets = ['x86_64-unknown-linux-gnu']
 substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', tag = 'devhub/latest', version = '3.0.0' }
 
 [dependencies]
-duality-service = { path = '../service', version = '4.0.0-dev' }
-template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+color-eyre = { version = "0.5.11", default-features = false }
+duality-service = { path = '../node/service', version = '4.0.0-dev' }
+template-runtime = { path = '../runtime/template', version = '4.0.0-dev', optional = true }
 
 jsonrpc-core = '18.0.0'
 structopt = '0.3.8'
@@ -55,7 +60,7 @@ substrate-frame-rpc-system = { git ='https://github.com/paritytech/substrate.git
 
 [features]
 cli = []
-default = [ "wasmtime", "cli" ]
+default = [ "wasmtime", "cli", "with-template-runtime" ]
 wasmtime = [ "sc-cli/wasmtime" ]
 with-template-runtime = [
     "template-runtime",

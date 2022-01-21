@@ -18,13 +18,15 @@
 //
 //! Substrate CLI
 
-#![warn(missing_docs)]
+mod cli;
+mod command;
 
 use color_eyre::eyre;
-
-use cli::Error as NodeError;
-
 use std::{error, fmt};
+
+pub use crate::cli::*;
+pub use crate::command::*;
+pub use sc_cli::{Error as NodeError, Result};
 
 /// A helper to satisfy the requirements of `eyre`
 /// compatible errors, which require `Send + Sync`
@@ -56,6 +58,6 @@ impl fmt::Display for ErrorWrapper {
 
 fn main() -> eyre::Result<()> {
 	color_eyre::install()?;
-	cli::run().map_err(|e| ErrorWrapper(std::sync::Arc::new(e)))?;
+	command::run().map_err(|e| ErrorWrapper(std::sync::Arc::new(e)))?;
 	Ok(())
 }

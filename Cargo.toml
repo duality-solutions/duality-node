@@ -1,27 +1,6 @@
-[package]
-name = "duality"
-description = "Implementation of a Duality Network node in Rust based on the Substrate framework."
-version = "4.0.0-dev"
-authors = [
-    "Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>",
-    "Parity Technologies <admin@parity.io>",
-    "Substrate DevHub <https://github.com/substrate-developer-hub>"
-]
-edition = "2018"
-rust-version = "1.57.0"
-readme = "README.md"
-
-[[bin]]
-name = "duality"
-path = "src/main.rs"
-
-[dependencies]
-cli = { package = "duality-cli", path = "node/cli", features = [ 'cli', 'with-template-runtime' ] } 
-color-eyre = { version = "0.5.11", default-features = false }
-
 [workspace]
 members = [
-    'node/cli',
+    'cli',
     'node/service',
     'runtime/template',
     'runtime/primitives',

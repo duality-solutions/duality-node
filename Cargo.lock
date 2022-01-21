@@ -1223,17 +1223,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
-name = "duality"
-version = "4.0.0-dev"
-dependencies = [
- "color-eyre",
- "duality-cli",
-]
-
-[[package]]
 name = "duality-cli"
 version = "4.0.0-dev"
 dependencies = [
+ "color-eyre",
  "duality-service",
  "frame-benchmarking",
  "frame-benchmarking-cli",
