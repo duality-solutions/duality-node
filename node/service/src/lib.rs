@@ -11,9 +11,10 @@
 
 mod client;
 
+use sp_consensus_aura::ed25519::AuthorityPair as AuraPair;
 use crate::client::RuntimeApiCollection;
 use sc_client_api::ExecutorProvider;
-use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
+use sc_consensus_aura::{SlotProportion, StartAuraParams};
 pub use sc_executor::NativeElseWasmExecutor;
 use sc_finality_grandpa::SharedVoterState;
 use sc_keystore::LocalKeystore;
@@ -21,9 +22,9 @@ use sc_service::{
 	error::Error as ServiceError, Configuration, TaskManager,
 	PartialComponents, ChainSpec, NativeExecutionDispatch
 };
+use sc_service::{TFullClient, TFullBackend};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_consensus::SlotData;
-use sp_consensus_aura::ed25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
@@ -37,8 +38,8 @@ use runtime_primitives::Block;
 use duality_executive::template::executive as template_executive;
 
 type FullClient<RuntimeApi, Executor> =
-	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
-type FullBackend = sc_service::TFullBackend<Block>;
+	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
+type FullBackend = TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
 /// Can be called for a `Configuration` to check if it is a configuration for
@@ -74,8 +75,9 @@ pub fn new_chain_ops(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(
+		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(
 			config,
+			template_executive::import_queue_builder
 		)?;
 		Ok((
 			Arc::new(Client::Template(client)),
@@ -90,8 +92,9 @@ pub fn new_chain_ops(
 			import_queue	,
 			task_manager,
 			..
-		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(
+		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(
 			config,
+			template_executive::import_queue_builder
 		)?;
 		Ok((
 			Arc::new(Client::Template(client)),
@@ -102,8 +105,9 @@ pub fn new_chain_ops(
 	}
 }
 
-pub fn new_partial<RuntimeApi, Executor>(
+pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 	config: &Configuration,
+	import_queue_builder: ImportQueueBuilder,
 ) -> Result<
 	sc_service::PartialComponents<
 		FullClient<RuntimeApi, Executor>,
@@ -127,7 +131,25 @@ pub fn new_partial<RuntimeApi, Executor>(
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
-	{
+	ImportQueueBuilder: FnOnce(
+		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		&Configuration,
+		sc_finality_grandpa::GrandpaBlockImport<
+			FullBackend,
+			Block,
+			FullClient<RuntimeApi, Executor>,
+			FullSelectChain,
+		>,
+		Option<sc_telemetry::TelemetryHandle>,
+		&TaskManager,
+	) -> Result<
+		sc_consensus::DefaultImportQueue<
+			Block,
+			TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+		>,
+		sc_service::Error,
+	>,
+{
 	if config.keystore_remote.is_some() {
 		return Err(ServiceError::Other(format!("Remote Keystores are not supported.")))
 	}
@@ -179,32 +201,13 @@ pub fn new_partial<RuntimeApi, Executor>(
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
 
-	let slot_duration = sc_consensus_aura::slot_duration(&*client)?.slot_duration();
-
-	let import_queue =
-		sc_consensus_aura::import_queue::<AuraPair, _, _, _, _, _, _>(ImportQueueParams {
-			block_import: grandpa_block_import.clone(),
-			justification_import: Some(Box::new(grandpa_block_import.clone())),
-			client: client.clone(),
-			create_inherent_data_providers: move |_, ()| async move {
-				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-				let slot =
-					sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
-						*timestamp,
-						slot_duration,
-					);
-
-				Ok((timestamp, slot))
-			},
-			spawner: &task_manager.spawn_essential_handle(),
-			can_author_with: sp_consensus::CanAuthorWithNativeVersion::new(
-				client.executor().clone(),
-			),
-			registry: config.prometheus_registry(),
-			check_for_equivocation: Default::default(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
-		})?;
+	let import_queue = import_queue_builder(
+		client.clone(),
+		config,
+		grandpa_block_import.clone(),
+		telemetry.as_ref().map(|telemetry| telemetry.handle()),
+		&task_manager,
+	)?;
 
 	Ok(sc_service::PartialComponents {
 		client,
@@ -238,7 +241,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
-	} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(&config)?;
+	} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(&config, template_executive::import_queue_builder)?;
 
 	if let Some(url) = &config.keystore_remote {
 		match remote_keystore(url) {

@@ -1245,11 +1245,19 @@ dependencies = [
 name = "duality-executive"
 version = "4.0.0-dev"
 dependencies = [
+ "runtime-primitives",
+ "sc-client-api",
+ "sc-consensus",
+ "sc-consensus-aura",
  "sc-executor",
+ "sc-finality-grandpa",
  "sc-service",
+ "sc-telemetry",
+ "sp-consensus",
  "sp-consensus-aura",
  "sp-core",
  "sp-runtime",
+ "sp-timestamp",
  "substrate-build-script-utils",
  "template-runtime",
 ]

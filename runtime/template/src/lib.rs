@@ -198,7 +198,7 @@ impl pallet_grandpa::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
+	pub const MinimumPeriod: u64 = aura::SLOT_DURATION / 2;
 }
 
 impl pallet_timestamp::Config for Runtime {
