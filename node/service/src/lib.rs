@@ -10,33 +10,48 @@
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 mod client;
-
-use crate::client::RuntimeApiCollection;
-pub use sc_executor::NativeElseWasmExecutor;
-use sc_finality_grandpa::SharedVoterState;
-use sc_keystore::LocalKeystore;
-use sc_service::{
-	error::Error as ServiceError, Configuration, TaskManager, KeystoreContainer,
-	PartialComponents, ChainSpec, NativeExecutionDispatch
-};
-use sc_service::{TFullClient, TFullBackend};
-use sc_telemetry::{Telemetry, TelemetryWorker};
-use std::{sync::Arc, time::Duration};
-use sp_runtime::traits::BlakeTwo256;
-use sp_trie::PrefixedMemoryDB;
-use sp_api::ConstructRuntimeApi;
-
 use client::Client;
 
-use runtime_primitives::Block;
+pub use sc_executor::NativeElseWasmExecutor;
+
+use core::future::Future;
+use crate::client::RuntimeApiCollection;
 
 #[cfg(feature = "with-template-runtime")]
 use duality_executive::template::executive as template_executive;
 
+use sc_client_api::StateBackendFor;
+use sc_consensus::{
+	BasicQueue, DefaultImportQueue, LongestChain
+};
+use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
+use sc_keystore::LocalKeystore;
+use sc_network::NetworkService;
+use sc_service::{
+	BuildNetworkParams, ChainSpec, Configuration, error::Error as ServiceError,
+	KeystoreContainer, NativeExecutionDispatch, PartialComponents, TaskManager,
+	TFullClient, TFullBackend
+};
+use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
+
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
+use sp_trie::PrefixedMemoryDB;
+use sp_api::ConstructRuntimeApi;
+
+use runtime_primitives::Block;
+
+use std::{sync::Arc, time::Duration};
+
 type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
-type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
+type FullSelectChain = LongestChain<FullBackend, Block>;
+type FullGrandpaBlockImport<RuntimeApi, Executor> = GrandpaBlockImport<
+	FullBackend,
+	Block,
+	FullClient<RuntimeApi, Executor>,
+	FullSelectChain,
+>;
 
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the network.
@@ -58,7 +73,7 @@ pub fn new_chain_ops(
 	(
 		Arc<Client>,
 		Arc<FullBackend>,
-		sc_consensus::BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
+		BasicQueue<Block, PrefixedMemoryDB<BlakeTwo256>>,
 		TaskManager,
 	),
 	ServiceError,
@@ -109,15 +124,10 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 		FullClient<RuntimeApi, Executor>,
 		FullBackend,
 		FullSelectChain,
-		sc_consensus::DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
+		DefaultImportQueue<Block, FullClient<RuntimeApi, Executor>>,
 		sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>,
 		(
-			sc_finality_grandpa::GrandpaBlockImport<
-				FullBackend,
-				Block,
-				FullClient<RuntimeApi, Executor>,
-				FullSelectChain,
-			>,
+			FullGrandpaBlockImport<RuntimeApi, Executor>,
 			sc_finality_grandpa::LinkHalf<Block, FullClient<RuntimeApi, Executor>, FullSelectChain>,
 			Option<Telemetry>,
 		),
@@ -125,25 +135,20 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 	ServiceError,
 > where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 	ImportQueueBuilder: FnOnce(
-		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		Arc<FullClient<RuntimeApi, Executor>>,
 		&Configuration,
-		sc_finality_grandpa::GrandpaBlockImport<
-			FullBackend,
-			Block,
-			FullClient<RuntimeApi, Executor>,
-			FullSelectChain,
-		>,
-		Option<sc_telemetry::TelemetryHandle>,
+		FullGrandpaBlockImport<RuntimeApi, Executor>,
+		Option<TelemetryHandle>,
 		&TaskManager,
 	) -> Result<
-		sc_consensus::DefaultImportQueue<
+		DefaultImportQueue<
 			Block,
-			TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+			FullClient<RuntimeApi, Executor>,
 		>,
-		sc_service::Error,
+		ServiceError,
 	>,
 {
 	if config.keystore_remote.is_some() {
@@ -205,7 +210,7 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 		&task_manager,
 	)?;
 
-	Ok(sc_service::PartialComponents {
+	Ok(PartialComponents {
 		client,
 		backend,
 		task_manager,
@@ -248,46 +253,36 @@ pub fn new_node<RuntimeApi, Executor, ImportQueueBuilder, BlockAuthorBuilder, Co
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 	ImportQueueBuilder: FnOnce(
-		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		Arc<FullClient<RuntimeApi, Executor>>,
 		&Configuration,
-		sc_finality_grandpa::GrandpaBlockImport<
-			FullBackend,
-			Block,
-			FullClient<RuntimeApi, Executor>,
-			FullSelectChain,
-		>,
-		Option<sc_telemetry::TelemetryHandle>,
+		FullGrandpaBlockImport<RuntimeApi, Executor>,
+		Option<TelemetryHandle>,
 		&TaskManager,
 	) -> Result<
-		sc_consensus::DefaultImportQueue<
-			Block,
-			TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
-		>,
-		sc_service::Error,
-	>,
-	BlockAuthorBuilder: FnOnce(
-		sc_finality_grandpa::GrandpaBlockImport<
-			FullBackend,
+		DefaultImportQueue<
 			Block,
 			FullClient<RuntimeApi, Executor>,
-			FullSelectChain,
 		>,
-		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		ServiceError,
+	>,
+	BlockAuthorBuilder: FnOnce(
+		FullGrandpaBlockImport<RuntimeApi, Executor>,
+		Arc<FullClient<RuntimeApi, Executor>>,
 		bool,
 		&KeystoreContainer,
-		Arc<sc_network::NetworkService<Block, <Block as sp_runtime::traits::Block>::Hash>>,
-		sc_consensus::LongestChain<sc_service::TFullBackend<Block>, Block>,
-		Option<sc_telemetry::TelemetryHandle>,
+		Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
+		FullSelectChain,
+		Option<TelemetryHandle>,
 		Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
 		&TaskManager,
 		Option<&substrate_prometheus_endpoint::Registry>
-	) -> Result<CoreFuture, sc_service::Error>,
-	CoreFuture: core::future::Future<Output = ()> + Send + 'static
+	) -> Result<CoreFuture, ServiceError>,
+	CoreFuture: Future<Output = ()> + Send + 'static
 {
-	let sc_service::PartialComponents {
+	let PartialComponents {
 		client,
 		backend,
 		mut task_manager,
@@ -317,7 +312,7 @@ where
 	));
 
 	let (network, system_rpc_tx, network_starter) =
-		sc_service::build_network(sc_service::BuildNetworkParams {
+		sc_service::build_network(BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
 			transaction_pool: transaction_pool.clone(),
