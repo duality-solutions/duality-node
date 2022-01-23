@@ -25,7 +25,6 @@ use sc_consensus::{
 	BasicQueue, DefaultImportQueue, LongestChain
 };
 use sc_finality_grandpa::{GrandpaBlockImport, SharedVoterState};
-use sc_keystore::LocalKeystore;
 use sc_network::NetworkService;
 use sc_service::{
 	BuildNetworkParams, ChainSpec, Configuration, error::Error as ServiceError,
@@ -151,10 +150,6 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 		ServiceError,
 	>,
 {
-	if config.keystore_remote.is_some() {
-		return Err(ServiceError::Other(format!("Remote Keystores are not supported.")))
-	}
-
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -222,13 +217,6 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 	})
 }
 
-fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
-	// FIXME: here would the concrete keystore be built,
-	//        must return a concrete type (NOT `LocalKeystore`) that
-	//        implements `CryptoStore` and `SyncCryptoStore`
-	Err("Remote Keystore not supported.")
-}
-
 pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	// FIXME: Should be substituted by a non-optional base runtime!
 	#[cfg(feature = "with-template-runtime")]
@@ -287,22 +275,11 @@ where
 		backend,
 		mut task_manager,
 		import_queue,
-		mut keystore_container,
+		keystore_container,
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
 	} = new_partial::<RuntimeApi, Executor, ImportQueueBuilder>(&config, import_queue_builder)?;
-
-	if let Some(url) = &config.keystore_remote {
-		match remote_keystore(url) {
-			Ok(k) => keystore_container.set_remote_keystore(k),
-			Err(e) =>
-				return Err(ServiceError::Other(format!(
-					"Error hooking up remote keystore for {}: {}",
-					url, e
-				))),
-		};
-	}
 
 	config.network.extra_sets.push(sc_finality_grandpa::grandpa_peers_set_config());
 	let warp_sync = Arc::new(sc_finality_grandpa::warp_proof::NetworkProvider::new(
