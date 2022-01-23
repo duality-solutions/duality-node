@@ -348,7 +348,7 @@ where
 					pool: pool.clone(),
 					deny_unsafe
 				};
-			Ok(duality_rpc::create_full(deps))
+			duality_rpc::create_full(deps).map_err(Into::into)
 		})
 	};
 

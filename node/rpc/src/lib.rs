@@ -34,8 +34,12 @@ pub struct FullDeps<C, P> {
 }
 
 /// Instantiate all full RPC extensions.
-pub fn create_full<C, P>(deps: FullDeps<C, P>) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
-where
+pub fn create_full<C, P>(
+	deps: FullDeps<C, P>
+) -> Result<
+	jsonrpc_core::IoHandler<sc_rpc::Metadata>,
+	Box<dyn std::error::Error + Send + Sync>
+> where
 	C: ProvideRuntimeApi<Block>,
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: Send + Sync + 'static,
@@ -53,5 +57,5 @@ where
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(client.clone(), pool, deny_unsafe)));
 	io.extend_with(TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone())));
 
-	io
+	Ok(io)
 }
