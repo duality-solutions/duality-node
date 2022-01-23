@@ -27,4 +27,3 @@ sc-transaction-pool-api = { git ='https://github.com/paritytech/substrate.git', 
 sp-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-block-builder = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-blockchain = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
-sp-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
