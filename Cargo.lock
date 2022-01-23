@@ -1246,19 +1246,27 @@ name = "duality-executive"
 version = "4.0.0-dev"
 dependencies = [
  "runtime-primitives",
+ "sc-basic-authorship",
  "sc-client-api",
  "sc-consensus",
  "sc-consensus-aura",
+ "sc-consensus-slots",
  "sc-executor",
  "sc-finality-grandpa",
+ "sc-network",
  "sc-service",
  "sc-telemetry",
+ "sc-transaction-pool",
+ "sp-api",
  "sp-consensus",
  "sp-consensus-aura",
  "sp-core",
+ "sp-inherents",
  "sp-runtime",
  "sp-timestamp",
+ "sp-trie",
  "substrate-build-script-utils",
+ "substrate-prometheus-endpoint",
  "template-runtime",
 ]
 
@@ -1301,6 +1309,7 @@ dependencies = [
  "sc-executor",
  "sc-finality-grandpa",
  "sc-keystore",
+ "sc-network",
  "sc-rpc",
  "sc-rpc-api",
  "sc-service",
@@ -1324,6 +1333,7 @@ dependencies = [
  "structopt",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
+ "substrate-prometheus-endpoint",
  "template-runtime",
 ]
 

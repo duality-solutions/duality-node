@@ -12,19 +12,28 @@ targets = ['x86_64-unknown-linux-gnu']
 substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
 [dependencies]
+sc-basic-authorship = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-client-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-consensus-aura = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sc-consensus-slots = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-service = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 sc-executor = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 sc-finality-grandpa = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sc-network = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-telemetry = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sc-transaction-pool = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
+sp-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-consensus-aura = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-core = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sp-inherents = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-runtime = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sp-timestamp = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sp-trie = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+
+substrate-prometheus-endpoint = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
 template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
 runtime-primitives = { path = "../../runtime/primitives", version = '4.0.0-dev' }

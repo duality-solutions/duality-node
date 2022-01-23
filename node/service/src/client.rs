@@ -12,7 +12,6 @@ use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_consensus::BlockStatus;
-use sp_consensus_aura::ed25519::AuthorityId as AuraId;
 use sp_runtime::{
 	generic::{BlockId, SignedBlock},
 	traits::{BlakeTwo256, Block as BlockT},
@@ -33,7 +32,6 @@ pub trait RuntimeApiCollection:
     + sp_api::ApiExt<Block>
     + sp_api::Metadata<Block>
     + sp_block_builder::BlockBuilder<Block>
-	+ sp_consensus_aura::AuraApi<Block, AuraId>
 	+ sp_finality_grandpa::GrandpaApi<Block>
     + sp_offchain::OffchainWorkerApi<Block>
     + sp_session::SessionKeys<Block>
@@ -50,7 +48,6 @@ where
     + sp_api::ApiExt<Block>
     + sp_api::Metadata<Block>
     + sp_block_builder::BlockBuilder<Block>
-	+ sp_consensus_aura::AuraApi<Block, AuraId>
 	+ sp_finality_grandpa::GrandpaApi<Block>
     + sp_offchain::OffchainWorkerApi<Block>
     + sp_session::SessionKeys<Block>

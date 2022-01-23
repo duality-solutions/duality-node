@@ -11,20 +11,16 @@
 
 mod client;
 
-use sp_consensus_aura::ed25519::AuthorityPair as AuraPair;
 use crate::client::RuntimeApiCollection;
-use sc_client_api::ExecutorProvider;
-use sc_consensus_aura::{SlotProportion, StartAuraParams};
 pub use sc_executor::NativeElseWasmExecutor;
 use sc_finality_grandpa::SharedVoterState;
 use sc_keystore::LocalKeystore;
 use sc_service::{
-	error::Error as ServiceError, Configuration, TaskManager,
+	error::Error as ServiceError, Configuration, TaskManager, KeystoreContainer,
 	PartialComponents, ChainSpec, NativeExecutionDispatch
 };
 use sc_service::{TFullClient, TFullBackend};
 use sc_telemetry::{Telemetry, TelemetryWorker};
-use sp_consensus::SlotData;
 use std::{sync::Arc, time::Duration};
 use sp_runtime::traits::BlakeTwo256;
 use sp_trie::PrefixedMemoryDB;
@@ -228,10 +224,69 @@ fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
 	Err("Remote Keystore not supported.")
 }
 
-/// Builds a new service for a full client.
-pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> {
-	// FIXME: Should gracefully fail!
+pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
+	// FIXME: Should be substituted by a non-optional base runtime!
 	#[cfg(feature = "with-template-runtime")]
+	new_node::<
+		template_runtime::RuntimeApi,
+		template_executive::ExecutorDispatch,
+		_,
+		_,
+		_,
+	>(
+		config,
+		template_executive::import_queue_builder,
+		template_executive::block_author_builder
+	).map_err(Into::into)
+}
+
+/// Builds a new instance for a full client.
+pub fn new_node<RuntimeApi, Executor, ImportQueueBuilder, BlockAuthorBuilder, CoreFuture>(
+	mut config: Configuration,
+	import_queue_builder :ImportQueueBuilder,
+	block_authoring_builder: BlockAuthorBuilder
+) -> Result<TaskManager, ServiceError>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+	ImportQueueBuilder: FnOnce(
+		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		&Configuration,
+		sc_finality_grandpa::GrandpaBlockImport<
+			FullBackend,
+			Block,
+			FullClient<RuntimeApi, Executor>,
+			FullSelectChain,
+		>,
+		Option<sc_telemetry::TelemetryHandle>,
+		&TaskManager,
+	) -> Result<
+		sc_consensus::DefaultImportQueue<
+			Block,
+			TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+		>,
+		sc_service::Error,
+	>,
+	BlockAuthorBuilder: FnOnce(
+		sc_finality_grandpa::GrandpaBlockImport<
+			FullBackend,
+			Block,
+			FullClient<RuntimeApi, Executor>,
+			FullSelectChain,
+		>,
+		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		bool,
+		&KeystoreContainer,
+		Arc<sc_network::NetworkService<Block, <Block as sp_runtime::traits::Block>::Hash>>,
+		sc_consensus::LongestChain<sc_service::TFullBackend<Block>, Block>,
+		Option<sc_telemetry::TelemetryHandle>,
+		Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
+		&TaskManager,
+		Option<&substrate_prometheus_endpoint::Registry>
+	) -> Result<CoreFuture, sc_service::Error>,
+	CoreFuture: core::future::Future<Output = ()> + Send + 'static
+{
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -241,7 +296,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
-	} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(&config, template_executive::import_queue_builder)?;
+	} = new_partial::<RuntimeApi, Executor, ImportQueueBuilder>(&config, import_queue_builder)?;
 
 	if let Some(url) = &config.keystore_remote {
 		match remote_keystore(url) {
@@ -283,7 +338,6 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 
 	let role = config.role.clone();
 	let force_authoring = config.force_authoring;
-	let backoff_authoring_blocks: Option<()> = None;
 	let name = config.network.node_name.clone();
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
@@ -317,53 +371,22 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 	})?;
 
 	if role.is_authority() {
-		let proposer_factory = sc_basic_authorship::ProposerFactory::new(
-			task_manager.spawn_handle(),
+		let block_author = block_authoring_builder(
+			block_import,
 			client.clone(),
+			force_authoring,
+			&keystore_container,
+			network.clone(),
+			select_chain,
+			telemetry.as_ref().map(|telemetry| telemetry.handle()),
 			transaction_pool,
-			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|x| x.handle()),
+			&task_manager,
+			prometheus_registry.as_ref()
 		);
 
-		let can_author_with =
-			sp_consensus::CanAuthorWithNativeVersion::new(client.executor().clone());
-
-		let slot_duration = sc_consensus_aura::slot_duration(&*client)?;
-		let raw_slot_duration = slot_duration.slot_duration();
-
-		let aura = sc_consensus_aura::start_aura::<AuraPair, _, _, _, _, _, _, _, _, _, _, _>(
-			StartAuraParams {
-				slot_duration,
-				client: client.clone(),
-				select_chain,
-				block_import,
-				proposer_factory,
-				create_inherent_data_providers: move |_, ()| async move {
-					let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-					let slot =
-						sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_duration(
-							*timestamp,
-							raw_slot_duration,
-						);
-
-					Ok((timestamp, slot))
-				},
-				force_authoring,
-				backoff_authoring_blocks,
-				keystore: keystore_container.sync_keystore(),
-				can_author_with,
-				sync_oracle: network.clone(),
-				justification_sync_link: network.clone(),
-				block_proposal_slot_portion: SlotProportion::new(2f32 / 3f32),
-				max_block_proposal_slot_portion: None,
-				telemetry: telemetry.as_ref().map(|x| x.handle()),
-			},
-		)?;
-
-		// the AURA authoring task is considered essential, i.e. if it
+		// the authoring task is considered essential, i.e. if it
 		// fails we take down the service with it.
-		task_manager.spawn_essential_handle().spawn_blocking("aura", Some("block-authoring"), aura);
+		task_manager.spawn_essential_handle().spawn_blocking("block-authoring", Some("block-authoring"), block_author?);
 	}
 
 	// if the node isn't actively participating in consensus then it doesn't
