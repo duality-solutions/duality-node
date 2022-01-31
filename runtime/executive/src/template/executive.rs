@@ -69,6 +69,7 @@ pub fn import_queue_builder(
 	client: Arc<FullClient>,
 	config: &Configuration,
 	grandpa_block_import: FullGrandpaBlockImport,
+    _select_chain: FullSelectChain,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<

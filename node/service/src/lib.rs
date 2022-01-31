@@ -140,6 +140,7 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 		Arc<FullClient<RuntimeApi, Executor>>,
 		&Configuration,
 		FullGrandpaBlockImport<RuntimeApi, Executor>,
+		FullSelectChain,
 		Option<TelemetryHandle>,
 		&TaskManager,
 	) -> Result<
@@ -201,6 +202,7 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 		client.clone(),
 		config,
 		grandpa_block_import.clone(),
+		select_chain.clone(),
 		telemetry.as_ref().map(|telemetry| telemetry.handle()),
 		&task_manager,
 	)?;
@@ -247,6 +249,7 @@ where
 		Arc<FullClient<RuntimeApi, Executor>>,
 		&Configuration,
 		FullGrandpaBlockImport<RuntimeApi, Executor>,
+		FullSelectChain,
 		Option<TelemetryHandle>,
 		&TaskManager,
 	) -> Result<
