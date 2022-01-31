@@ -44,6 +44,24 @@ pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
 	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
 }
 
+fn development_config_genesis(wasm_binary: &[u8]) -> GenesisConfig {
+	testnet_genesis(
+		wasm_binary,
+		// Initial PoA authorities
+		vec![authority_keys_from_seed("Alice")],
+		// Sudo account
+		get_account_id_from_seed::<ed25519::Public>("Alice"),
+		// Pre-funded accounts
+		vec![
+			get_account_id_from_seed::<ed25519::Public>("Alice"),
+			get_account_id_from_seed::<ed25519::Public>("Bob"),
+			get_account_id_from_seed::<ed25519::Public>("Alice//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Bob//stash"),
+		],
+		true,
+	)
+}
+
 pub fn development_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
 
@@ -53,23 +71,7 @@ pub fn development_config() -> Result<ChainSpec, String> {
 		// ID
 		"dev",
 		ChainType::Development,
-		move || {
-			testnet_genesis(
-				wasm_binary,
-				// Initial PoA authorities
-				vec![authority_keys_from_seed("Alice")],
-				// Sudo account
-				get_account_id_from_seed::<ed25519::Public>("Alice"),
-				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<ed25519::Public>("Alice"),
-					get_account_id_from_seed::<ed25519::Public>("Bob"),
-					get_account_id_from_seed::<ed25519::Public>("Alice//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Bob//stash"),
-				],
-				true,
-			)
-		},
+		move || development_config_genesis(wasm_binary),
 		// Bootnodes
 		vec![],
 		// Telemetry
@@ -83,6 +85,33 @@ pub fn development_config() -> Result<ChainSpec, String> {
 	))
 }
 
+
+fn testnet_config_genesis(wasm_binary: &[u8]) -> GenesisConfig {
+	testnet_genesis(
+		wasm_binary,
+		// Initial PoA authorities
+		vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+		// Sudo account
+		get_account_id_from_seed::<ed25519::Public>("Alice"),
+		// Pre-funded accounts
+		vec![
+			get_account_id_from_seed::<ed25519::Public>("Alice"),
+			get_account_id_from_seed::<ed25519::Public>("Bob"),
+			get_account_id_from_seed::<ed25519::Public>("Charlie"),
+			get_account_id_from_seed::<ed25519::Public>("Dave"),
+			get_account_id_from_seed::<ed25519::Public>("Eve"),
+			get_account_id_from_seed::<ed25519::Public>("Ferdie"),
+			get_account_id_from_seed::<ed25519::Public>("Alice//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Bob//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Charlie//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Dave//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Eve//stash"),
+			get_account_id_from_seed::<ed25519::Public>("Ferdie//stash"),
+		],
+		true,
+	)
+}
+
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
 
@@ -92,31 +121,7 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 		// ID
 		"local_testnet",
 		ChainType::Local,
-		move || {
-			testnet_genesis(
-				wasm_binary,
-				// Initial PoA authorities
-				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-				// Sudo account
-				get_account_id_from_seed::<ed25519::Public>("Alice"),
-				// Pre-funded accounts
-				vec![
-					get_account_id_from_seed::<ed25519::Public>("Alice"),
-					get_account_id_from_seed::<ed25519::Public>("Bob"),
-					get_account_id_from_seed::<ed25519::Public>("Charlie"),
-					get_account_id_from_seed::<ed25519::Public>("Dave"),
-					get_account_id_from_seed::<ed25519::Public>("Eve"),
-					get_account_id_from_seed::<ed25519::Public>("Ferdie"),
-					get_account_id_from_seed::<ed25519::Public>("Alice//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Bob//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Charlie//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Dave//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Eve//stash"),
-					get_account_id_from_seed::<ed25519::Public>("Ferdie//stash"),
-				],
-				true,
-			)
-		},
+		move || testnet_config_genesis(wasm_binary),
 		// Bootnodes
 		vec![],
 		// Telemetry
