@@ -5,9 +5,3 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-
-#[cfg(template)]
-pub mod template;
-
-#[cfg(sparrow)]
-pub mod sparrow;

@@ -3,6 +3,7 @@ members = [
     'cli',
     'executive',
     'node/service',
+    'runtime/sparrow',
     'runtime/template',
     'primitives',
 ]

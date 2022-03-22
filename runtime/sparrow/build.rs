@@ -6,8 +6,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-#[cfg(template)]
-pub mod template;
+use substrate_wasm_builder::WasmBuilder;
 
-#[cfg(sparrow)]
-pub mod sparrow;
+fn main() {
+	WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.build()
+}
