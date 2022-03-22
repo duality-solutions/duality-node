@@ -1,3 +1,12 @@
+// This file is a part of Duality
+//
+// Copyright (c) 2022 Duality Blockchain Solutions LLC
+// Copyright (c) 2019-2021 PureStake Inc.
+// Copyright (c) 2017-2021 Parity Technologies (UK) Ltd.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+
 pub use runtime_primitives::{AccountId, Block, BlockNumber, Balance, Hash, Index, Header};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};

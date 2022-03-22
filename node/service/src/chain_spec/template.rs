@@ -1,3 +1,11 @@
+// This file is a part of Duality
+//
+// Copyright (c) 2022 Duality Blockchain Solutions LLC
+// Copyright (c) 2017-2021 Parity Technologies (UK) Ltd.
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+
 use sc_service::ChainType;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{sr25519, Pair, Public};
