@@ -1,0 +1,27 @@
+[package]
+name = 'duality-executive'
+version = '4.0.0-dev'
+authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
+edition = '2021'
+build = 'build.rs'
+
+[package.metadata.docs.rs]
+targets = ['x86_64-unknown-linux-gnu']
+
+[build-dependencies]
+substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+
+[dependencies]
+sc-service = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
+sc-executor = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
+
+sp-consensus-aura = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sp-core = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+sp-runtime = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+
+template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+
+[features]
+with-template-runtime = [
+    "template-runtime",
+]

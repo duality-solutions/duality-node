@@ -21,6 +21,7 @@ substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.
 [dependencies]
 color-eyre = { version = "0.5.11", default-features = false }
 duality-service = { path = '../node/service', version = '4.0.0-dev' }
+duality-executive = { path = '../node/executive', version = '4.0.0-dev' }
 template-runtime = { path = '../runtime/template', version = '4.0.0-dev', optional = true }
 
 jsonrpc-core = '18.0.0'
@@ -64,6 +65,7 @@ default = [ "wasmtime", "cli", "with-template-runtime" ]
 wasmtime = [ "sc-cli/wasmtime" ]
 with-template-runtime = [
     "template-runtime",
+    "duality-executive/with-template-runtime",
     "duality-service/with-template-runtime",
 ]
 runtime-benchmarks = [

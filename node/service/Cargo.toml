@@ -14,6 +14,7 @@ substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.
 [dependencies]
 duality-rpc = { path = '../rpc', version = '4.0.0-dev' }
 template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+duality-executive = { path = '../executive', version = '4.0.0-dev' }
 runtime-primitives = { path = "../../runtime/primitives", version = '4.0.0-dev' }
 
 jsonrpc-core = '18.0.0'
@@ -62,4 +63,5 @@ runtime-benchmarks = [
 ]
 with-template-runtime = [
     "template-runtime",
+    "duality-executive/with-template-runtime",
 ]

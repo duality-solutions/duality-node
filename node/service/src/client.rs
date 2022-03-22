@@ -24,6 +24,9 @@ use std::sync::Arc;
 #[cfg(feature = "with-template-runtime")]
 use template_runtime;
 
+#[cfg(feature = "with-template-runtime")]
+use duality_executive::template::executive as template_executive;
+
 /// A set of APIs that polkadot-like runtimes must implement.
 pub trait RuntimeApiCollection:
     sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
@@ -142,7 +145,7 @@ macro_rules! match_client {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(feature = "with-template-runtime")]
-	Template(Arc<crate::FullClient<template_runtime::RuntimeApi, crate::TemplateExecutor>>),
+	Template(Arc<crate::FullClient<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {

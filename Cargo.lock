@@ -1205,6 +1205,7 @@ name = "duality-cli"
 version = "4.0.0-dev"
 dependencies = [
  "color-eyre",
+ "duality-executive",
  "duality-service",
  "frame-benchmarking",
  "frame-benchmarking-cli",
@@ -1241,6 +1242,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "duality-executive"
+version = "4.0.0-dev"
+dependencies = [
+ "sc-executor",
+ "sc-service",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-runtime",
+ "substrate-build-script-utils",
+ "template-runtime",
+]
+
+[[package]]
 name = "duality-rpc"
 version = "4.0.0-dev"
 dependencies = [
@@ -1264,6 +1278,7 @@ dependencies = [
 name = "duality-service"
 version = "4.0.0-dev"
 dependencies = [
+ "duality-executive",
  "duality-rpc",
  "frame-system-rpc-runtime-api",
  "jsonrpc-core",

@@ -34,36 +34,12 @@ use client::Client;
 use runtime_primitives::Block;
 
 #[cfg(feature = "with-template-runtime")]
-use template_runtime::RuntimeApi as TemplateRuntimeApi;
-
-pub mod chain_spec;
+use duality_executive::template::executive as template_executive;
 
 type FullClient<RuntimeApi, Executor> =
 	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-
-#[cfg(feature = "with-template-runtime")]
-// Our native executor instance.
-pub struct TemplateExecutor;
-
-#[cfg(feature = "with-template-runtime")]
-impl sc_executor::NativeExecutionDispatch for TemplateExecutor {
-	/// Only enable the benchmarking host functions when we actually want to benchmark.
-	#[cfg(feature = "runtime-benchmarks")]
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
-	/// Otherwise we only use the default Substrate host functions.
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type ExtendHostFunctions = ();
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		template_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		template_runtime::native_version()
-	}
-}
 
 /// Can be called for a `Configuration` to check if it is a configuration for
 /// the network.
@@ -98,7 +74,7 @@ pub fn new_chain_ops(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial::<TemplateRuntimeApi, TemplateExecutor>(
+		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(
 			config,
 		)?;
 		Ok((
@@ -114,7 +90,7 @@ pub fn new_chain_ops(
 			import_queue	,
 			task_manager,
 			..
-		} = new_partial::<TemplateRuntimeApi, TemplateExecutor>(
+		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(
 			config,
 		)?;
 		Ok((
@@ -262,7 +238,7 @@ pub fn new_full(mut config: Configuration) -> Result<TaskManager, ServiceError> 
 		select_chain,
 		transaction_pool,
 		other: (block_import, grandpa_link, mut telemetry),
-	} = new_partial::<TemplateRuntimeApi, crate::TemplateExecutor>(&config)?;
+	} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>(&config)?;
 
 	if let Some(url) = &config.keystore_remote {
 		match remote_keystore(url) {

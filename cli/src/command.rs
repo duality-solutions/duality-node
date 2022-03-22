@@ -13,10 +13,10 @@ use crate::{
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
 
 #[cfg(feature = "with-template-runtime")]
-use template_runtime as TemplateRuntime;
+use duality_executive::template::chain_spec as template_chain;
 
 #[cfg(feature = "with-template-runtime")]
-use duality_service::chain_spec::template as TemplateChain;
+use duality_executive::template::executive as template_executive;
 
 use duality_service::IdentifyVariant;
 
@@ -47,16 +47,16 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
 		Ok(match id {
-			"dev" => Box::new(TemplateChain::development_config()?),
-			"" | "local" => Box::new(TemplateChain::local_testnet_config()?),
+			"dev" => Box::new(template_chain::development_config()?),
+			"" | "local" => Box::new(template_chain::local_testnet_config()?),
 			path =>
-				Box::new(TemplateChain::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+				Box::new(template_chain::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
 		#[cfg(feature = "with-template-runtime")]
-		&TemplateRuntime::VERSION
+		&template_runtime::VERSION
 	}
 }
 
@@ -129,7 +129,7 @@ pub fn run() -> sc_cli::Result<()> {
 					#[cfg(feature = "with-template-runtime")]
 					spec if spec.is_template() => {
 						return runner.sync_run(|config| {
-							cmd.run::<TemplateRuntime::Block, duality_service::TemplateExecutor>(
+							cmd.run::<template_runtime::Block, template_executive::ExecutorDispatch>(
 								config
 							)
 						})

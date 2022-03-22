@@ -15,7 +15,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod constants;
-use constants::params::*;
+pub use constants::params::*;
 
 pub use runtime_primitives::*;
 
