@@ -1,5 +1,5 @@
 [package]
-name = "runtime-primitives"
+name = "duality-primitives"
 version = '4.0.0-dev'
 authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
 edition = '2021'

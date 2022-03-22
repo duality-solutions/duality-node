@@ -21,7 +21,7 @@ use std::sync::Arc;
 
 pub use sc_rpc_api::DenyUnsafe;
 
-use runtime_primitives::{Block, AccountId, Balance, Index};
+use duality_primitives::{Block, AccountId, Balance, Index};
 
 /// Full client dependencies.
 pub struct FullDeps<C, P> {

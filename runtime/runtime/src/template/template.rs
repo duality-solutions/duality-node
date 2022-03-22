@@ -6,18 +6,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-#![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
-
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-pub mod constants;
-pub use constants::params::*;
-
-pub use runtime_primitives::*;
+pub use crate::template::constants::params::*;
+pub use duality_primitives::*;
 
 use pallet_grandpa::{
 	fg_primitives, AuthorityList as GrandpaAuthorityList,
@@ -253,7 +247,7 @@ impl pallet_sudo::Config for Runtime {
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
-		NodeBlock = runtime_primitives::Block,
+		NodeBlock = duality_primitives::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system,

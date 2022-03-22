@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-pub use runtime_primitives::{AccountId, Block, BlockNumber, Balance, Hash, Index, Header};
+pub use duality_primitives::{AccountId, Block, BlockNumber, Balance, Hash, Index, Header};
 use sc_client_api::{Backend as BackendT, BlockchainEvents, KeyIterator};
 use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
@@ -19,9 +19,6 @@ use sp_runtime::{
 };
 use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
-
-#[cfg(feature = "with-template-runtime")]
-use template_runtime;
 
 #[cfg(feature = "with-template-runtime")]
 use duality_executive::template::executive as template_executive;
@@ -142,7 +139,7 @@ macro_rules! match_client {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(feature = "with-template-runtime")]
-	Template(Arc<crate::FullClient<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>>),
+	Template(Arc<crate::FullClient<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {

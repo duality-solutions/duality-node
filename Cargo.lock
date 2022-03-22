@@ -1206,20 +1206,21 @@ version = "4.0.0-dev"
 dependencies = [
  "color-eyre",
  "duality-executive",
+ "duality-runtime",
  "duality-service",
  "frame-benchmarking-cli",
  "sc-cli",
  "sc-service",
  "structopt",
  "substrate-build-script-utils",
- "template-runtime",
 ]
 
 [[package]]
 name = "duality-executive"
 version = "4.0.0-dev"
 dependencies = [
- "runtime-primitives",
+ "duality-primitives",
+ "duality-runtime",
  "sc-basic-authorship",
  "sc-client-api",
  "sc-consensus",
@@ -1237,18 +1238,26 @@ dependencies = [
  "sp-timestamp",
  "substrate-build-script-utils",
  "substrate-prometheus-endpoint",
- "template-runtime",
+]
+
+[[package]]
+name = "duality-primitives"
+version = "4.0.0-dev"
+dependencies = [
+ "sp-core",
+ "sp-finality-grandpa",
+ "sp-runtime",
 ]
 
 [[package]]
 name = "duality-rpc"
 version = "4.0.0-dev"
 dependencies = [
+ "duality-primitives",
  "frame-system-rpc-runtime-api",
  "jsonrpc-core",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "runtime-primitives",
  "sc-rpc",
  "sc-rpc-api",
  "sc-transaction-pool-api",
@@ -1260,15 +1269,52 @@ dependencies = [
 ]
 
 [[package]]
+name = "duality-runtime"
+version = "4.0.0-dev"
+dependencies = [
+ "duality-primitives",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "hex-literal",
+ "pallet-aura",
+ "pallet-balances",
+ "pallet-grandpa",
+ "pallet-randomness-collective-flip",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-inherents",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "duality-service"
 version = "4.0.0-dev"
 dependencies = [
  "duality-executive",
+ "duality-primitives",
  "duality-rpc",
+ "duality-runtime",
  "frame-system-rpc-runtime-api",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "runtime-primitives",
  "sc-client-api",
  "sc-consensus",
  "sc-executor",
@@ -1292,7 +1338,6 @@ dependencies = [
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
- "template-runtime",
 ]
 
 [[package]]
@@ -4858,15 +4903,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "runtime-primitives"
-version = "4.0.0-dev"
-dependencies = [
- "sp-core",
- "sp-finality-grandpa",
- "sp-runtime",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6971,42 +7007,6 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "template-runtime"
-version = "4.0.0-dev"
-dependencies = [
- "frame-benchmarking",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "hex-literal",
- "pallet-aura",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-randomness-collective-flip",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "parity-scale-codec",
- "runtime-primitives",
- "scale-info",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder",
 ]
 
 [[package]]

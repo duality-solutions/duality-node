@@ -2,8 +2,9 @@
 members = [
     'cli',
     'node/service',
-    'runtime/template',
-    'runtime/primitives',
+    'runtime/executive',
+    'runtime/runtime',
+    'primitives',
 ]
 
 # make sure dev builds with backtrace do

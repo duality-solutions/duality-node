@@ -37,7 +37,7 @@ use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use sp_trie::PrefixedMemoryDB;
 use sp_api::ConstructRuntimeApi;
 
-use runtime_primitives::Block;
+use duality_primitives::Block;
 
 use std::{sync::Arc, time::Duration};
 
@@ -85,7 +85,7 @@ pub fn new_chain_ops(
 			import_queue,
 			task_manager,
 			..
-		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(
+		} = new_partial::<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch, _>(
 			config,
 			template_executive::import_queue_builder
 		)?;
@@ -102,7 +102,7 @@ pub fn new_chain_ops(
 			import_queue	,
 			task_manager,
 			..
-		} = new_partial::<template_runtime::RuntimeApi, template_executive::ExecutorDispatch, _>(
+		} = new_partial::<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch, _>(
 			config,
 			template_executive::import_queue_builder
 		)?;
@@ -221,7 +221,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	// FIXME: Should be substituted by a non-optional base runtime!
 	#[cfg(feature = "with-template-runtime")]
 	new_node::<
-		template_runtime::RuntimeApi,
+		duality_runtime::template::RuntimeApi,
 		template_executive::ExecutorDispatch,
 		_,
 		_,

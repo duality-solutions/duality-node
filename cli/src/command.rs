@@ -56,7 +56,7 @@ impl SubstrateCli for Cli {
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
 		#[cfg(feature = "with-template-runtime")]
-		&template_runtime::VERSION
+		&duality_runtime::template::VERSION
 	}
 }
 
@@ -129,7 +129,7 @@ pub fn run() -> sc_cli::Result<()> {
 					#[cfg(feature = "with-template-runtime")]
 					spec if spec.is_template() => {
 						return runner.sync_run(|config| {
-							cmd.run::<template_runtime::Block, template_executive::ExecutorDispatch>(
+							cmd.run::<duality_runtime::template::Block, template_executive::ExecutorDispatch>(
 								config
 							)
 						})
