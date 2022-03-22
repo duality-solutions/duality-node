@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  container:
+    build:
+      context: '..'
+      dockerfile: 'dev/Dockerfile'
+    tty: true
+    stdin_open: true
+    ports:
+      - "9933:9933"
+      - "9944:9944"
+      - "30333:30333"
+    volumes:
+      - type: bind
+        source: ../..
+        target: /src
