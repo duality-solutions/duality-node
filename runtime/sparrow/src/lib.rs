@@ -69,6 +69,8 @@ pub use sp_runtime::{Perbill, Permill};
 pub mod constants;
 use constants::{time::*, currency::*, params::*, params::babe::*};
 
+pub mod bag_thresholds;
+
 // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
@@ -501,6 +503,39 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	>;
 	type WeightInfo = pallet_election_provider_multi_phase::weights::SubstrateWeight<Runtime>;
 	type VoterSnapshotPerBlock = VoterSnapshotPerBlock;
+	type BenchmarkingConfig = BenchmarkConfig;
+}
+
+/// The numbers configured here should always be more than the the maximum limits of staking pallet
+/// to ensure election snapshot will not run out of memory.
+pub struct BenchmarkConfig;
+impl pallet_election_provider_multi_phase::BenchmarkingConfig for BenchmarkConfig {
+	const VOTERS: [u32; 2] = [5_000, 10_000];
+	const TARGETS: [u32; 2] = [1_000, 2_000];
+	const ACTIVE_VOTERS: [u32; 2] = [1000, 4_000];
+	const DESIRED_TARGETS: [u32; 2] = [400, 800];
+	const SNAPSHOT_MAXIMUM_VOTERS: u32 = 25_000;
+	const MINER_MAXIMUM_VOTERS: u32 = 15_000;
+	const MAXIMUM_TARGETS: u32 = 2000;
+}
+
+
+/// A reasonable benchmarking config for staking pallet.
+pub struct StakingBenchmarkingConfig;
+impl pallet_staking::BenchmarkingConfig for StakingBenchmarkingConfig {
+	type MaxValidators = ConstU32<1000>;
+	type MaxNominators = ConstU32<1000>;
+}
+
+parameter_types! {
+	pub const BagThresholds: &'static [u64] = &bag_thresholds::THRESHOLDS;
+}
+
+impl pallet_bags_list::Config for Runtime {
+	type Event = Event;
+	type VoteWeightProvider = Staking;
+	type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
+	type BagThresholds = BagThresholds;
 }
 
 // TODO #6469: This shouldn't be static, but a lazily cached value, not built unless needed, and
@@ -566,9 +601,10 @@ impl pallet_staking::Config for Runtime {
 	type NextNewSession = Session;
 	type ElectionProvider = ElectionProviderMultiPhase;
 	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
-	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 	// Use the nominators map to iter voters, but also keep bags-list up-to-date.
-	// type SortedListProvider = BagsList;
+	type SortedListProvider = BagsList;
+	type BenchmarkingConfig = StakingBenchmarkingConfig;
+	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1055,11 +1091,9 @@ impl InstanceFilter<Call> for ProxyType {
 				// Specifically omitting the entire Balances pallet
 				Call::Authorship(..) |
 				Call::Staking(..) |
-				Call::Offences(..) |
 				Call::Session(..) |
 				Call::Grandpa(..) |
 				Call::ImOnline(..) |
-				Call::AuthorityDiscovery(..) |
 				Call::Democracy(..) |
 				Call::Council(..) |
 				Call::TechnicalCommittee(..) |
@@ -1083,7 +1117,8 @@ impl InstanceFilter<Call> for ProxyType {
 				// Specifically omitting Vesting `vested_transfer`, and `force_vested_transfer`
 				Call::Scheduler(..) |
 				Call::Proxy(..) |
-				Call::Multisig(..)
+				Call::Multisig(..) |
+				Call::BagsList(..)
 			),
 			ProxyType::Governance => matches!(c,
 				Call::Democracy(..) |
@@ -1156,12 +1191,12 @@ construct_runtime! {
 		// Consensus support.
 		Authorship: pallet_authorship::{Pallet, Call, Storage} = 5,
 		Staking: pallet_staking::{Pallet, Call, Storage, Config<T>, Event<T>} = 6,
-		Offences: pallet_offences::{Pallet, Call, Storage, Event} = 7,
+		Offences: pallet_offences::{Pallet, Storage, Event} = 7,
 		Historical: session_historical::{Pallet} = 34,
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 8,
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config, Event, ValidateUnsigned} = 10,
 		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event<T>, ValidateUnsigned, Config<T>} = 11,
-		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Call, Config} = 12,
+		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config} = 12,
 
 		// Governance stuff; uncallable initially.
 		Democracy: pallet_democracy::{Pallet, Call, Storage, Config<T>, Event<T>} = 13,
@@ -1203,6 +1238,9 @@ construct_runtime! {
 
 		// Election pallet. Only works with staking, but placed here to maintain indices.
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event<T>, ValidateUnsigned} = 37,
+
+		// Provides a semi-sorted list of nominators for staking.
+		BagsList: pallet_bags_list::{Pallet, Call, Storage, Event<T>} = 39,
 	}
 }
 

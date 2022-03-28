@@ -38,6 +38,7 @@ frame-try-runtime = { default-features = false, git = 'https://github.com/parity
 pallet-authority-discovery = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-authorship = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-babe = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+pallet-bags-list = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-balances = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-bounties = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-collective = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
@@ -100,6 +101,7 @@ runtime-benchmarks = [
     'frame-system/runtime-benchmarks',
     'hex-literal',
     'pallet-babe/runtime-benchmarks',
+    'pallet-bags-list/runtime-benchmarks',
     'pallet-balances/runtime-benchmarks',
     'pallet-bounties/runtime-benchmarks',
     'pallet-collective/runtime-benchmarks',
@@ -128,6 +130,7 @@ std = [
     'bitvec/std',
     'codec/std',
     'duality-primitives/std',
+    'frame-election-provider-support/std',
     'frame-executive/std',
     'frame-support/std',
     'frame-system-rpc-runtime-api/std',
@@ -137,6 +140,7 @@ std = [
     'pallet-authority-discovery/std',
     'pallet-authorship/std',
     'pallet-babe/std',
+    'pallet-bags-list/std',
     'pallet-balances/std',
     'pallet-bounties/std',
     'pallet-collective/std',
