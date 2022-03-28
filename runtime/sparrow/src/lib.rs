@@ -22,7 +22,7 @@ use primitives::v1::{
 	InboundDownwardMessage, InboundHrmpMessage, SessionInfo,
 };
 use runtime_common::{
-	claims, SlowAdjustingFeeUpdate, CurrencyToVote,
+	SlowAdjustingFeeUpdate, CurrencyToVote,
 	impls::DealWithFees,
 	BlockHashCount, RocksDbWeight, BlockWeights, BlockLength, OffchainSolutionWeightLimit,
 	AssignmentSessionKeyPlaceholder,
@@ -705,18 +705,6 @@ impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime where
 }
 
 parameter_types! {
-	pub Prefix: &'static [u8] = b"Pay KSMs to the Kusama account:";
-}
-
-impl claims::Config for Runtime {
-	type Event = Event;
-	type VestingSchedule = Vesting;
-	type Prefix = Prefix;
-	type MoveClaimOrigin = pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilCollective>;
-	type WeightInfo = weights::runtime_common_claims::WeightInfo<Runtime>;
-}
-
-parameter_types! {
 	// Minimum 100 bytes/KSM deposited (1 CENT/byte)
 	pub const BasicDeposit: Balance = 10 * DOLLARS;       // 258 bytes on-chain
 	pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
@@ -874,7 +862,6 @@ impl InstanceFilter<Call> for ProxyType {
 				Call::Treasury(..) |
 				Call::Bounties(..) |
 				Call::Tips(..) |
-				Call::Claims(..) |
 				Call::Utility(..) |
 				Call::Identity(..) |
 				Call::Society(..) |
@@ -977,9 +964,6 @@ construct_runtime! {
 		ElectionsPhragmen: pallet_elections_phragmen::{Pallet, Call, Storage, Event<T>, Config<T>} = 16,
 		TechnicalMembership: pallet_membership::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 17,
 		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event<T>} = 18,
-
-		// Claims. Usable initially.
-		Claims: claims::{Pallet, Call, Storage, Event<T>, Config<T>, ValidateUnsigned} = 19,
 
 		// Utility module.
 		Utility: pallet_utility::{Pallet, Call, Event} = 24,
@@ -1284,8 +1268,6 @@ sp_api::impl_runtime_apis! {
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
-			// Polkadot
-			add_benchmark!(params, batches, runtime_common::claims, Claims);
 			// Substrate
 			add_benchmark!(params, batches, pallet_balances, Balances);
 			add_benchmark!(params, batches, pallet_bounties, Bounties);
