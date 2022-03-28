@@ -25,7 +25,7 @@ use runtime_common::{
 	claims, SlowAdjustingFeeUpdate, CurrencyToVote,
 	impls::DealWithFees,
 	BlockHashCount, RocksDbWeight, BlockWeights, BlockLength, OffchainSolutionWeightLimit,
-	ParachainSessionKeyPlaceholder, AssignmentSessionKeyPlaceholder,
+	AssignmentSessionKeyPlaceholder,
 };
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -268,8 +268,6 @@ impl_opaque_keys! {
 		pub grandpa: Grandpa,
 		pub babe: Babe,
 		pub im_online: ImOnline,
-		pub para_validator: ParachainSessionKeyPlaceholder<Runtime>,
-		pub para_assignment: AssignmentSessionKeyPlaceholder<Runtime>,
 		pub authority_discovery: AuthorityDiscovery,
 	}
 }
@@ -1119,71 +1117,6 @@ sp_api::impl_runtime_apis! {
 	impl offchain_primitives::OffchainWorkerApi<Block> for Runtime {
 		fn offchain_worker(header: &<Block as BlockT>::Header) {
 			Executive::offchain_worker(header)
-		}
-	}
-
-	impl primitives::v1::ParachainHost<Block, Hash, BlockNumber> for Runtime {
-		fn validators() -> Vec<ValidatorId> {
-			Vec::new()
-		}
-
-		fn validator_groups() -> (Vec<Vec<ValidatorIndex>>, GroupRotationInfo<BlockNumber>) {
-			(Vec::new(), GroupRotationInfo { session_start_block: 0, group_rotation_frequency: 0, now: 0 })
-		}
-
-		fn availability_cores() -> Vec<CoreState<Hash, BlockNumber>> {
-			Vec::new()
-		}
-
-		fn persisted_validation_data(_: Id, _: OccupiedCoreAssumption)
-			-> Option<PersistedValidationData<Hash, BlockNumber>> {
-			None
-		}
-		fn check_validation_outputs(
-			_: Id,
-			_: primitives::v1::CandidateCommitments,
-		) -> bool {
-			false
-		}
-
-		fn session_index_for_child() -> SessionIndex {
-			0
-		}
-
-		fn session_info(_: SessionIndex) -> Option<SessionInfo> {
-			None
-		}
-
-		fn validation_code(_: Id, _: OccupiedCoreAssumption) -> Option<ValidationCode> {
-			None
-		}
-
-		fn historical_validation_code(_: Id, _: BlockNumber) -> Option<ValidationCode> {
-			None
-		}
-
-		fn candidate_pending_availability(_: Id) -> Option<CommittedCandidateReceipt<Hash>> {
-			None
-		}
-
-		fn candidate_events() -> Vec<CandidateEvent<Hash>> {
-			Vec::new()
-		}
-
-		fn dmq_contents(
-			_recipient: Id,
-		) -> Vec<InboundDownwardMessage<BlockNumber>> {
-			Vec::new()
-		}
-
-		fn inbound_hrmp_channels_contents(
-			_recipient: Id
-		) -> BTreeMap<Id, Vec<InboundHrmpMessage<BlockNumber>>> {
-			BTreeMap::new()
-		}
-
-		fn validation_code_by_hash(_hash: Hash) -> Option<ValidationCode> {
-			None
 		}
 	}
 
