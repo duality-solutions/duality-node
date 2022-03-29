@@ -13,6 +13,8 @@ fn main() {
 	cfg_aliases! {
 		template: { feature = "with-runtime-template" },
 		sparrow: { feature = "with-runtime-sparrow" },
+		all: { all(template, sparrow) },
+		none: { not(all) },
 	}
 
 	generate_cargo_keys();

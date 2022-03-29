@@ -21,7 +21,10 @@ use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
 #[cfg(template)]
-use duality_executive::template::executive as template_executive;
+use duality_executive::template::executive as executive_template;
+
+#[cfg(sparrow)]
+use duality_executive::sparrow::executive as executive_sparrow;
 
 /// A set of APIs that polkadot-like runtimes must implement.
 pub trait RuntimeApiCollection:
@@ -131,6 +134,8 @@ macro_rules! match_client {
 		match $self {
 			#[cfg(template)]
 			Self::Template(client) => client.$method($($param),*),
+			#[cfg(sparrow)]
+			Self::Sparrow(client) => client.$method($($param),*),
 		}
 	};
 }
@@ -139,7 +144,9 @@ macro_rules! match_client {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(template)]
-	Template(Arc<crate::FullClient<runtime_template::RuntimeApi, template_executive::ExecutorDispatch>>),
+	Template(Arc<crate::FullClient<runtime_template::RuntimeApi, executive_template::ExecutorDispatch>>),
+	#[cfg(sparrow)]
+	Sparrow(Arc<crate::FullClient<runtime_sparrow::RuntimeApi, executive_sparrow::ExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {
@@ -147,6 +154,8 @@ impl ClientHandle for Client {
 		match self {
 			#[cfg(template)]
 			Self::Template(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
+			#[cfg(sparrow)]
+			Self::Sparrow(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
 		}
 	}
 }

@@ -13,12 +13,17 @@ use crate::{
 };
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
 
-cfg_if! {
-	if #[cfg(template)] {
-		use duality_executive::template::chain_spec as template_chain;
-		use duality_executive::template::executive as template_executive;
-	} else {}
-}
+#[cfg(template)]
+use duality_executive::template::{
+	chain_spec as template_chain,
+	executive as executive_template
+};
+
+#[cfg(sparrow)]
+use duality_executive::sparrow::{
+	chain_spec as sparrow_chain,
+	executive as executive_sparrow
+};
 
 use duality_service::IdentifyVariant;
 
@@ -48,17 +53,37 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
-		Ok(match id {
-			"dev" => Box::new(template_chain::development_config()?),
-			"" | "local" => Box::new(template_chain::local_testnet_config()?),
-			path =>
-				Box::new(template_chain::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
-		})
+		cfg_if! {
+			if #[cfg(sparrow)] {
+				Ok(match id {
+					"dev" => Box::new(sparrow_chain::development_config()?),
+					"" | "local" => Box::new(sparrow_chain::local_testnet_config()?),
+					path =>
+						Box::new(sparrow_chain::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+				})
+			} else if #[cfg(template)] {
+				Ok(match id {
+					"dev" => Box::new(template_chain::development_config()?),
+					"" | "local" => Box::new(template_chain::local_testnet_config()?),
+					path =>
+					Box::new(template_chain::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+				})
+			} else {
+				Err("No runtime is included in this build")
+			}
+		}
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		#[cfg(template)]
-		&runtime_template::VERSION
+		cfg_if! {
+			if #[cfg(sparrow)] {
+				&runtime_sparrow::VERSION
+			} else if #[cfg(template)] {
+				&runtime_template::VERSION
+			} else {
+				// TODO: allow disabled runtime support
+			}
+		}
 	}
 }
 
@@ -131,12 +156,19 @@ pub fn run() -> sc_cli::Result<()> {
 					#[cfg(template)]
 					spec if spec.is_template() => {
 						return runner.sync_run(|config| {
-							cmd.run::<runtime_template::Block, template_executive::ExecutorDispatch>(
+							cmd.run::<runtime_template::Block, executive_template::ExecutorDispatch>(
 								config
 							)
 						})
 					},
-
+					#[cfg(sparrow)]
+					spec if spec.is_sparrow() => {
+						return runner.sync_run(|config| {
+							cmd.run::<runtime_sparrow::Block, executive_sparrow::ExecutorDispatch>(
+								config
+							)
+						})
+					},
 					_ => panic!("invalid chain spec"),
 				}
 			} else {
