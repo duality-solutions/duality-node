@@ -29,19 +29,19 @@ duality-service = { path = '../node/service', version = '4.0.0-dev' }
 
 frame-benchmarking-cli = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
-template-runtime = { path = '../runtime/template', version = '4.0.0-dev', optional = true }
+runtime-template = { path = '../runtime/template', version = '4.0.0-dev', optional = true }
 
 sc-cli = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 sc-service = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 
 [features]
 cli = []
-default = [ "wasmtime", "cli", "with-template-runtime" ]
+default = [ "wasmtime", "cli", "with-runtime-template" ]
 wasmtime = [ "sc-cli/wasmtime" ]
-with-template-runtime = [
-    "duality-executive/with-template-runtime",
-    "duality-service/with-template-runtime",
-    "template-runtime",
+with-runtime-template = [
+    "duality-executive/with-runtime-template",
+    "duality-service/with-runtime-template",
+    "runtime-template",
 ]
 runtime-benchmarks = [
     'duality-service/runtime-benchmarks',

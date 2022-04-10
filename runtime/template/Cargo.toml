@@ -1,5 +1,5 @@
 [package]
-name = 'template-runtime'
+name = 'runtime-template'
 version = '4.0.0-dev'
 description = 'A fresh FRAME-based Substrate runtime, ready for hacking.'
 authors = ['Duality Blockchain Solutions LLC <https://github.com/dualitynetwork>']
@@ -51,7 +51,7 @@ sp-version = { default-features = false, git = 'https://github.com/paritytech/su
 
 [features]
 default = ['std']
-with-template-runtime = []
+with-runtime-template = []
 runtime-benchmarks = [
     'frame-benchmarking',
     'frame-support/runtime-benchmarks',

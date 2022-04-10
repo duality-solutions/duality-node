@@ -22,7 +22,7 @@ pallet-transaction-payment-rpc = { git ='https://github.com/paritytech/substrate
 pallet-transaction-payment-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 frame-system-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
-template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
+runtime-template = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
 
 sc-client-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
@@ -52,9 +52,9 @@ substrate-prometheus-endpoint = { git ='https://github.com/paritytech/substrate.
 [features]
 default = []
 runtime-benchmarks = [
-    "template-runtime/runtime-benchmarks"
+    "runtime-template/runtime-benchmarks"
 ]
-with-template-runtime = [
-    "duality-executive/with-template-runtime",
-    "template-runtime",
+with-runtime-template = [
+    "duality-executive/with-runtime-template",
+    "runtime-template",
 ]

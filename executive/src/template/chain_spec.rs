@@ -11,7 +11,7 @@ use sp_consensus_aura::ed25519::AuthorityId as AuraId;
 use sp_core::{ed25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
-use template_runtime::{
+use runtime_template::{
 	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaId,
 	GrandpaConfig, Signature, SudoConfig, SystemConfig, WASM_BINARY
 };
