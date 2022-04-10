@@ -7,16 +7,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
+use cfg_if::cfg_if;
 use crate::{
 	cli::{Cli, Subcommand},
 };
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
 
-#[cfg(template)]
-use duality_executive::template::chain_spec as template_chain;
-
-#[cfg(template)]
-use duality_executive::template::executive as template_executive;
+cfg_if! {
+	if #[cfg(template)] {
+		use duality_executive::template::chain_spec as template_chain;
+		use duality_executive::template::executive as template_executive;
+	} else {}
+}
 
 use duality_service::IdentifyVariant;
 

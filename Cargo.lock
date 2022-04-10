@@ -1210,6 +1210,7 @@ checksum = "56899898ce76aaf4a0f24d914c97ea6ed976d42fec6ad33fcbb0a1103e07b2b0"
 name = "duality-cli"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg-if 1.0.0",
  "cfg_aliases",
  "color-eyre",
  "duality-executive",
@@ -1226,6 +1227,7 @@ dependencies = [
 name = "duality-executive"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg-if 1.0.0",
  "cfg_aliases",
  "duality-primitives",
  "sc-basic-authorship",
@@ -1261,6 +1263,7 @@ dependencies = [
 name = "duality-rpc"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg-if 1.0.0",
  "cfg_aliases",
  "duality-primitives",
  "frame-system-rpc-runtime-api",
@@ -1281,6 +1284,7 @@ dependencies = [
 name = "duality-service"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg-if 1.0.0",
  "cfg_aliases",
  "duality-executive",
  "duality-primitives",

@@ -20,6 +20,7 @@ cfg_aliases = "0.1.1"
 substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
 [dependencies]
+cfg-if = "1.0.0"
 structopt = '0.3.8'
 color-eyre = { version = "0.5.11", default-features = false }
 
