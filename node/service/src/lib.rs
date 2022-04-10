@@ -17,7 +17,7 @@ pub use sc_executor::NativeElseWasmExecutor;
 use core::future::Future;
 use crate::client::RuntimeApiCollection;
 
-#[cfg(feature = "with-template-runtime")]
+#[cfg(template)]
 use duality_executive::template::executive as template_executive;
 
 use sc_client_api::StateBackendFor;
@@ -221,7 +221,7 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 
 pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
 	// FIXME: Should be substituted by a non-optional base runtime!
-	#[cfg(feature = "with-template-runtime")]
+	#[cfg(template)]
 	new_node::<
 		template_runtime::RuntimeApi,
 		template_executive::ExecutorDispatch,

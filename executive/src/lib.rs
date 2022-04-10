@@ -6,5 +6,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-#[cfg(feature = "with-template-runtime")]
+#[cfg(template)]
 pub mod template;

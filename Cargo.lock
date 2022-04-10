@@ -686,6 +686,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "cfg_aliases"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
+
+[[package]]
 name = "chacha20"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1204,6 +1210,7 @@ checksum = "56899898ce76aaf4a0f24d914c97ea6ed976d42fec6ad33fcbb0a1103e07b2b0"
 name = "duality-cli"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg_aliases",
  "color-eyre",
  "duality-executive",
  "duality-service",
@@ -1219,6 +1226,7 @@ dependencies = [
 name = "duality-executive"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg_aliases",
  "duality-primitives",
  "sc-basic-authorship",
  "sc-client-api",
@@ -1253,6 +1261,7 @@ dependencies = [
 name = "duality-rpc"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg_aliases",
  "duality-primitives",
  "frame-system-rpc-runtime-api",
  "jsonrpc-core",
@@ -1272,6 +1281,7 @@ dependencies = [
 name = "duality-service"
 version = "4.0.0-dev"
 dependencies = [
+ "cfg_aliases",
  "duality-executive",
  "duality-primitives",
  "duality-rpc",

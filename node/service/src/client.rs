@@ -20,7 +20,7 @@ use sp_runtime::{
 use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
-#[cfg(feature = "with-template-runtime")]
+#[cfg(template)]
 use duality_executive::template::executive as template_executive;
 
 /// A set of APIs that polkadot-like runtimes must implement.
@@ -129,7 +129,7 @@ pub trait ClientHandle {
 macro_rules! match_client {
 	($self:ident, $method:ident($($param:ident),*)) => {
 		match $self {
-			#[cfg(feature = "with-template-runtime")]
+			#[cfg(template)]
 			Self::Template(client) => client.$method($($param),*),
 		}
 	};
@@ -138,14 +138,14 @@ macro_rules! match_client {
 /// A client instance of a runtime.
 #[derive(Clone)]
 pub enum Client {
-	#[cfg(feature = "with-template-runtime")]
+	#[cfg(template)]
 	Template(Arc<crate::FullClient<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {
 	fn execute_with<T: ExecuteWithClient>(&self, t: T) -> T::Output {
 		match self {
-			#[cfg(feature = "with-template-runtime")]
+			#[cfg(template)]
 			Self::Template(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
 		}
 	}

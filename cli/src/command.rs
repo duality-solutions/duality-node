@@ -12,10 +12,10 @@ use crate::{
 };
 use sc_cli::{ChainSpec, RuntimeVersion, SubstrateCli};
 
-#[cfg(feature = "with-template-runtime")]
+#[cfg(template)]
 use duality_executive::template::chain_spec as template_chain;
 
-#[cfg(feature = "with-template-runtime")]
+#[cfg(template)]
 use duality_executive::template::executive as template_executive;
 
 use duality_service::IdentifyVariant;
@@ -55,7 +55,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		#[cfg(feature = "with-template-runtime")]
+		#[cfg(template)]
 		&template_runtime::VERSION
 	}
 }
@@ -126,7 +126,7 @@ pub fn run() -> sc_cli::Result<()> {
 				let runner = cli.create_runner(cmd)?;
 				let chain_spec = &runner.config().chain_spec;
 				match chain_spec {
-					#[cfg(feature = "with-template-runtime")]
+					#[cfg(template)]
 					spec if spec.is_template() => {
 						return runner.sync_run(|config| {
 							cmd.run::<template_runtime::Block, template_executive::ExecutorDispatch>(
