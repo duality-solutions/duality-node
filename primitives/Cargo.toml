@@ -6,6 +6,10 @@ edition = '2021'
 
 [dependencies]
 
+static_assertions = '1.1.0'
+
+frame-support = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", default-features = false }
+
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15-1", default-features = false }
 sp-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15-1", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.15-1", default-features = false }
@@ -14,6 +18,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 default = [ "std" ]
 
 std = [
+	"frame-support/std",
 	"sp-core/std",
 	"sp-finality-grandpa/std",
 	"sp-runtime/std",

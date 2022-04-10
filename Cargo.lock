@@ -1256,9 +1256,11 @@ dependencies = [
 name = "duality-primitives"
 version = "4.0.0-dev"
 dependencies = [
+ "frame-support",
  "sp-core",
  "sp-finality-grandpa",
  "sp-runtime",
+ "static_assertions",
 ]
 
 [[package]]
@@ -5399,6 +5401,7 @@ dependencies = [
  "bitvec",
  "duality-primitives",
  "frame-benchmarking",
+ "frame-election-provider-support",
  "frame-executive",
  "frame-support",
  "frame-system",
@@ -5450,6 +5453,7 @@ dependencies = [
  "serde_derive",
  "smallvec",
  "sp-api",
+ "sp-arithmetic",
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
