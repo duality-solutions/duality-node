@@ -66,4 +66,6 @@ pub mod params {
 
     /// This determines the cost per byte of information conveyed in each transaction
     pub const TRANSACTION_BYTE_FEE: Balance = 1 * currency::MILL;
+
+    static_assertions::const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 }

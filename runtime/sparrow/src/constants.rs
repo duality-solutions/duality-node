@@ -78,4 +78,6 @@ pub mod params {
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		(items as Balance) * ITEM_FEE + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
+
+    static_assertions::const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 }
