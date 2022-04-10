@@ -37,7 +37,7 @@ sc-service = { git ='https://github.com/paritytech/substrate.git', branch = "pol
 
 [features]
 cli = []
-default = [ "wasmtime", "cli", "with-runtime-template" ]
+default = [ "wasmtime", "cli", "with-runtime-template", "with-runtime-sparrow" ]
 wasmtime = [ "sc-cli/wasmtime" ]
 with-runtime-template = [
     "duality-executive/with-runtime-template",
