@@ -12,6 +12,10 @@ targets = ['x86_64-unknown-linux-gnu']
 substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
 [dependencies]
+duality-primitives = { path = "../primitives", version = '4.0.0-dev' }
+
+template-runtime = { path = '../runtime/template', version = '4.0.0-dev', optional= true }
+
 sc-basic-authorship = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-client-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
@@ -31,10 +35,7 @@ sp-timestamp = { git ='https://github.com/paritytech/substrate.git', branch = "p
 
 substrate-prometheus-endpoint = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
-duality-runtime = { path = '../../runtime/runtime', version = '4.0.0-dev' }
-duality-primitives = { path = "../../primitives", version = '4.0.0-dev' }
-
 [features]
 with-template-runtime = [
-    "duality-runtime/with-template-runtime",
+    "template-runtime",
 ]

@@ -31,7 +31,7 @@ use sp_timestamp::InherentDataProvider;
 
 use substrate_prometheus_endpoint::Registry;
 
-use duality_runtime::template::RuntimeApi;
+use template_runtime::RuntimeApi;
 use duality_primitives::Block;
 
 type FullClient =
@@ -57,11 +57,11 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	type ExtendHostFunctions = ();
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		duality_runtime::template::api::dispatch(method, data)
+		template_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		duality_runtime::template::native_version()
+		template_runtime::native_version()
 	}
 }
 

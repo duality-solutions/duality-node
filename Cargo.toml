@@ -1,9 +1,9 @@
 [workspace]
 members = [
     'cli',
+    'executive',
     'node/service',
-    'runtime/executive',
-    'runtime/runtime',
+    'runtime/template',
     'primitives',
 ]
 

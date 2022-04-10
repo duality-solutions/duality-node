@@ -13,13 +13,14 @@ substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.
 
 [dependencies]
 duality-rpc = { path = '../rpc', version = '4.0.0-dev' }
-duality-runtime = { path = '../../runtime/runtime', version = '4.0.0-dev' }
-duality-executive = { path = '../../runtime/executive', version = '4.0.0-dev' }
+duality-executive = { path = '../../executive', version = '4.0.0-dev' }
 duality-primitives = { path = "../../primitives", version = '4.0.0-dev' }
 
 pallet-transaction-payment-rpc = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 pallet-transaction-payment-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 frame-system-rpc-runtime-api = { default-features = false, git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+
+template-runtime = { path = '../../runtime/template', version = '4.0.0-dev', optional = true }
 
 sc-client-api = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 sc-consensus = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
@@ -49,9 +50,9 @@ substrate-prometheus-endpoint = { git ='https://github.com/paritytech/substrate.
 [features]
 default = []
 runtime-benchmarks = [
-    "duality-runtime/runtime-benchmarks"
+    "template-runtime/runtime-benchmarks"
 ]
 with-template-runtime = [
     "duality-executive/with-template-runtime",
-    "duality-runtime/with-template-runtime",
+    "template-runtime",
 ]

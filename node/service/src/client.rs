@@ -139,7 +139,7 @@ macro_rules! match_client {
 #[derive(Clone)]
 pub enum Client {
 	#[cfg(feature = "with-template-runtime")]
-	Template(Arc<crate::FullClient<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch>>),
+	Template(Arc<crate::FullClient<template_runtime::RuntimeApi, template_executive::ExecutorDispatch>>),
 }
 
 impl ClientHandle for Client {
