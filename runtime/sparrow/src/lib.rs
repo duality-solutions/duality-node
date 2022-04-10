@@ -77,8 +77,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 /// Runtime version (Kusama).
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("kusama"),
-	impl_name: create_runtime_str!("parity-kusama"),
+	spec_name: create_runtime_str!("duality"),
+	impl_name: create_runtime_str!("sparrow"),
 	authoring_version: 2,
 	spec_version: 2031,
 	impl_version: 0,
@@ -447,7 +447,7 @@ parameter_types! {
 	pub const SignedMaxSubmissions: u32 = 16;
 	pub const SignedDepositBase: Balance = deposit(2, 0);
 	pub const SignedDepositByte: Balance = deposit(0, 10) / 1024;
-	// Each good submission will get 1/10 KSM as reward
+	// Each good submission will get 1/10 DLT as reward
 	pub SignedRewardBase: Balance =  COIN / 10;
 	pub SolutionImprovementThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
 
@@ -933,7 +933,7 @@ impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime where
 }
 
 parameter_types! {
-	// Minimum 100 bytes/KSM deposited (1 CENT/byte)
+	// Minimum 100 bytes/DLT deposited (1 CENT/byte)
 	pub const BasicDeposit: Balance = 10 * COIN;       // 258 bytes on-chain
 	pub const FieldDeposit: Balance = 250 * CENT;        // 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = 2 * COIN;   // 53 bytes on-chain
@@ -1473,7 +1473,7 @@ sp_api::impl_runtime_apis! {
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade() -> (Weight, Weight) {
-			log::info!("try-runtime::on_runtime_upgrade kusama.");
+			log::info!("try-runtime::on_runtime_upgrade duality.");
 			let weight = Executive::try_runtime_upgrade().unwrap();
 			(weight, BlockWeights::get().max_block)
 		}
