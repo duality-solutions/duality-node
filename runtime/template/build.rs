@@ -6,5 +6,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-#[cfg(feature = "with-template-runtime")]
-pub mod template;
+use substrate_wasm_builder::WasmBuilder;
+
+fn main() {
+	WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.build()
+}

@@ -7,14 +7,10 @@
 //
 
 use sc_service::ChainType;
-use sp_consensus_aura::ed25519::AuthorityId as AuraId;
 use sp_core::{ed25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
-use duality_runtime::template::{
-	AccountId, AuraConfig, BalancesConfig, GenesisConfig, GrandpaId,
-	GrandpaConfig, Signature, SudoConfig, SystemConfig, WASM_BINARY
-};
+use runtime_sparrow::{*, constants::currency::*};
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
@@ -39,9 +35,25 @@ where
 	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-/// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
-	(get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+/// Helper function to generate stash, controller and session key from seed
+pub fn authority_keys_from_seed(
+	seed: &str,
+) -> (
+	AccountId,
+	AccountId,
+	BabeId,
+	GrandpaId,
+	ImOnlineId,
+	AuthorityDiscoveryId,
+) {
+	(
+		get_account_id_from_seed::<ed25519::Public>(&format!("{}//stash", seed)),
+		get_account_id_from_seed::<ed25519::Public>(seed),
+		get_from_seed::<BabeId>(seed),
+		get_from_seed::<GrandpaId>(seed),
+		get_from_seed::<ImOnlineId>(seed),
+		get_from_seed::<AuthorityDiscoveryId>(seed),
+	)
 }
 
 fn development_config_genesis(wasm_binary: &[u8]) -> GenesisConfig {
@@ -49,8 +61,6 @@ fn development_config_genesis(wasm_binary: &[u8]) -> GenesisConfig {
 		wasm_binary,
 		// Initial PoA authorities
 		vec![authority_keys_from_seed("Alice")],
-		// Sudo account
-		get_account_id_from_seed::<ed25519::Public>("Alice"),
 		// Pre-funded accounts
 		vec![
 			get_account_id_from_seed::<ed25519::Public>("Alice"),
@@ -91,8 +101,6 @@ fn testnet_config_genesis(wasm_binary: &[u8]) -> GenesisConfig {
 		wasm_binary,
 		// Initial PoA authorities
 		vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-		// Sudo account
-		get_account_id_from_seed::<ed25519::Public>("Alice"),
 		// Pre-funded accounts
 		vec![
 			get_account_id_from_seed::<ed25519::Public>("Alice"),
@@ -135,33 +143,87 @@ pub fn local_testnet_config() -> Result<ChainSpec, String> {
 	))
 }
 
+fn session_keys(
+	babe: BabeId,
+	grandpa: GrandpaId,
+	im_online: ImOnlineId,
+	authority_discovery: AuthorityDiscoveryId,
+) -> SessionKeys {
+	SessionKeys {
+		babe,
+		grandpa,
+		im_online,
+		authority_discovery,
+	}
+}
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
 	wasm_binary: &[u8],
-	initial_authorities: Vec<(AuraId, GrandpaId)>,
-	root_key: AccountId,
+	initial_authorities: Vec<(
+		AccountId,
+		AccountId,
+		BabeId,
+		GrandpaId,
+		ImOnlineId,
+		AuthorityDiscoveryId,
+	)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 ) -> GenesisConfig {
+	const ENDOWMENT: u128 = 1_000_000 * COIN;
+    const STASH: u128 = 100 * COIN;
 	GenesisConfig {
-		system: SystemConfig {
-			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
-		},
+		system: SystemConfig { code: wasm_binary.to_vec() },
 		balances: BalancesConfig {
-			// Configure endowed accounts with initial balance of 1 << 60.
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect(),
 		},
-		aura: AuraConfig {
-			authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
+		indices: IndicesConfig { indices: vec![] },
+		session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.0.clone(),
+						session_keys(
+							x.2.clone(),
+							x.3.clone(),
+							x.4.clone(),
+							x.5.clone()
+						),
+					)
+				})
+				.collect::<Vec<_>>(),
 		},
-		grandpa: GrandpaConfig {
-			authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
+		staking: StakingConfig {
+			validator_count: initial_authorities.len() as u32,
+			minimum_validator_count: initial_authorities.len() as u32,
+			stakers: initial_authorities
+				.iter()
+				.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
+				.collect(),
+			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+			force_era: Forcing::ForceNone,
+			slash_reward_fraction: Perbill::from_percent(10),
+			..Default::default()
 		},
-		sudo: SudoConfig {
-			// Assign network admin rights.
-			key: root_key,
+		elections_phragmen: Default::default(),
+		democracy: Default::default(),
+		council: CouncilConfig { members: vec![], phantom: Default::default() },
+		technical_committee: TechnicalCommitteeConfig {
+			members: vec![],
+			phantom: Default::default(),
 		},
-		transaction_payment: Default::default(),
+		technical_membership: Default::default(),
+		babe: BabeConfig {
+			authorities: Default::default(),
+			epoch_config: Some(BABE_GENESIS_EPOCH_CONFIG),
+		},
+		grandpa: Default::default(),
+		im_online: Default::default(),
+		authority_discovery: AuthorityDiscoveryConfig { keys: vec![] },
+		vesting: VestingConfig { vesting: vec![] },
+		treasury: Default::default(),
 	}
 }

@@ -7,7 +7,10 @@
 //
 
 use sc_consensus::LongestChain;
-use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
+use sc_consensus_babe::{
+    Config as BabeConfig, BabeParams, block_import, import_queue,
+    SlotProportion, start_babe
+};
 use sc_client_api::ExecutorProvider;
 use sc_executor::NativeElseWasmExecutor;
 use sc_finality_grandpa::GrandpaBlockImport;
@@ -18,20 +21,14 @@ use sc_service::{
 };
 use sc_telemetry::TelemetryHandle;
 
-use sp_consensus::{
-	CanAuthorWithNativeVersion, SlotData
-};
-use sp_consensus_aura::{
-	ed25519::AuthorityPair, inherents::InherentDataProvider as AuraInherentDataProvider
-};
+use sp_consensus::CanAuthorWithNativeVersion;
 use sp_runtime::{
 	traits::{Block as BlockT}
 };
-use sp_timestamp::InherentDataProvider;
 
 use substrate_prometheus_endpoint::Registry;
 
-use duality_runtime::template::RuntimeApi;
+use runtime_sparrow::RuntimeApi;
 use duality_primitives::Block;
 
 type FullClient =
@@ -57,11 +54,11 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	type ExtendHostFunctions = ();
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		duality_runtime::template::api::dispatch(method, data)
+		runtime_sparrow::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		duality_runtime::template::native_version()
+		runtime_sparrow::native_version()
 	}
 }
 
@@ -69,7 +66,7 @@ pub fn import_queue_builder(
 	client: Arc<FullClient>,
 	config: &Configuration,
 	grandpa_block_import: FullGrandpaBlockImport,
-    _select_chain: FullSelectChain,
+    select_chain: FullSelectChain,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<
@@ -79,37 +76,34 @@ pub fn import_queue_builder(
 	>,
 	ServiceError,
 > {
-	let slot_duration = sc_consensus_aura::slot_duration(&*client)?;
+	let justification_import = grandpa_block_import.clone();
+	let babe_config = BabeConfig::get_or_compute(&*client)?;
+	let (block_import, babe_link) =
+		block_import(babe_config.clone(), grandpa_block_import, client.clone())?;
+	let slot_duration = babe_link.config().slot_duration();
 
-	sc_consensus_aura::import_queue::<
-		AuthorityPair,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_
-	>(ImportQueueParams {
-		block_import: grandpa_block_import.clone(),
-		justification_import: Some(Box::new(grandpa_block_import.clone())),
-		client: client.clone(),
-		create_inherent_data_providers: move |_, ()| async move {
-			let timestamp = InherentDataProvider::from_system_time();
-			let slot = AuraInherentDataProvider::from_timestamp_and_duration(
+	import_queue(
+		babe_link.clone(),
+		block_import.clone(),
+		Some(Box::new(justification_import)),
+		client.clone(),
+		select_chain.clone(),
+		move |_, ()| async move {
+			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+
+			let slot =
+				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
 					*timestamp,
-					slot_duration.slot_duration(),
+					slot_duration,
 				);
 
 			Ok((timestamp, slot))
 		},
-		spawner: &task_manager.spawn_essential_handle(),
-		can_author_with: CanAuthorWithNativeVersion::new(
-			client.executor().clone(),
-		),
-		registry: config.prometheus_registry(),
-		check_for_equivocation: Default::default(),
-		telemetry: telemetry,
-	}).map_err(Into::into)
+		&task_manager.spawn_essential_handle(),
+		config.prometheus_registry(),
+		CanAuthorWithNativeVersion::new(client.executor().clone()),
+		telemetry,
+	).map_err::<ServiceError, _>(Into::into)
 }
 
 pub fn block_author_builder(
@@ -134,46 +128,49 @@ pub fn block_author_builder(
 		prometheus_registry,
 		telemetry.clone(),
 	);
-	let slot_duration = sc_consensus_aura::slot_duration(&*client)?;
+	// TODO: replace with something less hacky
+	// start hacky section
+	let babe_config_tmp = BabeConfig::get_or_compute(&*client)?;
+	let (_block_import_tmp, babe_link) =
+	sc_consensus_babe::block_import(babe_config_tmp.clone(), block_import.clone(), client.clone())?;
+	let slot_duration = babe_link.config().slot_duration();
+	// end hacky section
+	let babe_config = BabeParams {
+		keystore: keystore.sync_keystore(),
+		client: client.clone(),
+		select_chain,
+		block_import,
+		env: proposer_factory,
+		sync_oracle: network.clone(),
+		justification_sync_link: network.clone(),
+		create_inherent_data_providers: move |parent, ()| {
+			let client_clone = client.clone();
 
-	sc_consensus_aura::start_aura::<
-		AuthorityPair,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_
-	>(
-		StartAuraParams {
-			slot_duration,
-			client: client.clone(),
-			select_chain,
-			block_import,
-			proposer_factory,
-			create_inherent_data_providers: move |_, ()| async move {
-				let timestamp = InherentDataProvider::from_system_time();
-				let slot = AuraInherentDataProvider::from_timestamp_and_duration(
+			async move {
+				let uncles = sc_consensus_uncles::create_uncles_inherent_data_provider(
+					&*client_clone,
+					parent,
+				)?;
+
+				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+
+				let slot =
+					sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_duration(
 						*timestamp,
-						slot_duration.slot_duration(),
+						slot_duration,
 					);
 
-				Ok((timestamp, slot))
-			},
-			force_authoring,
-			backoff_authoring_blocks: backoff_authoring_blocks,
-			keystore: keystore.sync_keystore(),
-			can_author_with,
-			sync_oracle: network.clone(),
-			justification_sync_link: network.clone(),
-			block_proposal_slot_portion: SlotProportion::new(2f32 / 3f32),
-			max_block_proposal_slot_portion: None,
-			telemetry: telemetry.clone(),
+				Ok((timestamp, slot, uncles))
+			}
 		},
-	).map_err::<ServiceError, _>(Into::into)
+		force_authoring,
+		backoff_authoring_blocks,
+		babe_link,
+		can_author_with,
+		block_proposal_slot_portion: SlotProportion::new(2f32 / 3f32),
+		max_block_proposal_slot_portion: None,
+		telemetry: telemetry,
+	};
+
+	start_babe(babe_config).map_err::<ServiceError, _>(Into::into)
 }

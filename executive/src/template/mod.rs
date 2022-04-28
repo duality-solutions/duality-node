@@ -6,7 +6,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
-pub mod template;
-pub mod constants;
-
-pub use template::*;
+pub mod chain_spec;
+pub mod executive;

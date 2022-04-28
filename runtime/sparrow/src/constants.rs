@@ -15,12 +15,13 @@ pub mod currency {
 }
 
 pub mod time {
-	pub const BLOCK_TIME: u64 = 6; // seconds
+    use duality_primitives::{Moment, BlockNumber};
+	pub const BLOCK_TIME: Moment = 6; // seconds
 
 	// Time is measured by number of blocks.
-    pub const MINUTES: u64 = 60 / BLOCK_TIME;
-	pub const HOURS: u64 = MINUTES * 60;
-	pub const DAYS: u64 = HOURS * 24;
+    pub const MINUTES: BlockNumber = 60 / BLOCK_TIME as u32;
+	pub const HOURS: BlockNumber = MINUTES * 60;
+	pub const DAYS: BlockNumber = HOURS * 24;
 }
 
 pub mod params {
@@ -30,16 +31,19 @@ pub mod params {
     use sp_runtime::Perbill;
     use duality_primitives::Balance;
 
-    pub mod aura {
-        use super::time;
+    pub mod babe {
+        use super::time::*;
+        use duality_primitives::BlockNumber;
 
         /// This determines the average expected block time that we are targeting.
-        /// Blocks will be produced at a minimum duration defined by `SLOT_DURATION`.
-        /// `SLOT_DURATION` is picked up by `pallet_timestamp` which is in turn picked
-        /// up by `pallet_aura` to implement `fn slot_duration()`.
-        ///
-        /// Change this to adjust the block time.
-        pub const SLOT_DURATION: u64 = time::BLOCK_TIME * 1000; // milliseconds
+        pub const SLOT_DURATION: u64 = BLOCK_TIME * 1000; // milliseconds
+
+        // 1 in 4 blocks (on average, not counting collisions) will be primary babe blocks.
+        pub const PRIMARY_PROBABILITY: (u64, u64) = (1, 4);
+
+        // NOTE: Currently it is not possible to change the epoch duration after the chain has started.
+    	//       Attempting to do so will brick block production.
+        pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 1 * DAYS;
     }
 
     /// We assume that ~10% of the block weight is consumed by `on_initialize` handlers.
@@ -66,4 +70,14 @@ pub mod params {
 
     /// This determines the cost per byte of information conveyed in each transaction
     pub const TRANSACTION_BYTE_FEE: Balance = 1 * currency::MILL;
+
+    /// These determine the cost per key and additional bytes of information stored on-chain
+    pub const ITEM_FEE: Balance = currency::CENT;
+    pub const STORAGE_BYTE_FEE: Balance = ITEM_FEE / 10;
+
+    pub const fn deposit(items: u32, bytes: u32) -> Balance {
+		(items as Balance) * ITEM_FEE + (bytes as Balance) * STORAGE_BYTE_FEE
+	}
+
+    static_assertions::const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 }

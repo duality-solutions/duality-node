@@ -16,29 +16,38 @@ path = "src/main.rs"
 targets = ['x86_64-unknown-linux-gnu']
 
 [build-dependencies]
+cfg_aliases = "0.1.1"
 substrate-build-script-utils = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
 
 [dependencies]
+cfg-if = "1.0.0"
 structopt = '0.3.8'
 color-eyre = { version = "0.5.11", default-features = false }
 
-duality-executive = { path = '../runtime/executive', version = '4.0.0-dev' }
-duality-runtime = { path = '../runtime/runtime', version = '4.0.0-dev' }
+duality-executive = { path = '../executive', version = '4.0.0-dev' }
 duality-service = { path = '../node/service', version = '4.0.0-dev' }
 
 frame-benchmarking-cli = { git = 'https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1" }
+
+runtime-sparrow = { path = '../runtime/sparrow', version = '4.0.0-dev', optional = true }
+runtime-template = { path = '../runtime/template', version = '4.0.0-dev', optional = true }
 
 sc-cli = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 sc-service = { git ='https://github.com/paritytech/substrate.git', branch = "polkadot-v0.9.15-1", features = ['wasmtime'] }
 
 [features]
 cli = []
-default = [ "wasmtime", "cli", "with-template-runtime" ]
+default = [ "wasmtime", "cli", "with-runtime-template", "with-runtime-sparrow" ]
 wasmtime = [ "sc-cli/wasmtime" ]
-with-template-runtime = [
-    "duality-executive/with-template-runtime",
-    "duality-service/with-template-runtime",
-    "duality-runtime/with-template-runtime",
+with-runtime-template = [
+    "duality-executive/with-runtime-template",
+    "duality-service/with-runtime-template",
+    "runtime-template",
+]
+with-runtime-sparrow = [
+    "duality-executive/with-runtime-sparrow",
+    "duality-service/with-runtime-sparrow",
+    "runtime-sparrow",
 ]
 runtime-benchmarks = [
     'duality-service/runtime-benchmarks',

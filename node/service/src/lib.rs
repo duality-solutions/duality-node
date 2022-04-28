@@ -9,6 +9,8 @@
 
 //! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
+use cfg_if::cfg_if;
+
 mod client;
 use client::Client;
 
@@ -16,9 +18,6 @@ pub use sc_executor::NativeElseWasmExecutor;
 
 use core::future::Future;
 use crate::client::RuntimeApiCollection;
-
-#[cfg(feature = "with-template-runtime")]
-use duality_executive::template::executive as template_executive;
 
 use sc_client_api::StateBackendFor;
 use sc_consensus::{
@@ -41,6 +40,16 @@ use duality_primitives::Block;
 
 use std::{sync::Arc, time::Duration};
 
+#[cfg(template)]
+use duality_executive::template::{
+	executive as executive_template
+};
+
+#[cfg(sparrow)]
+use duality_executive::sparrow::{
+	executive as executive_sparrow
+};
+
 type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 type FullBackend = TFullBackend<Block>;
@@ -57,11 +66,16 @@ type FullGrandpaBlockImport<RuntimeApi, Executor> = GrandpaBlockImport<
 pub trait IdentifyVariant {
 	/// Returns `true` if this is a configuration for a template network.
 	fn is_template(&self) -> bool;
+	/// Returns `true` if this is a configuration for the "Sparrow" network.
+	fn is_sparrow(&self) -> bool;
 }
 
 impl IdentifyVariant for Box<dyn ChainSpec> {
 	fn is_template(&self) -> bool {
 		self.id().ends_with("template")
+	}
+	fn is_sparrow(&self) -> bool {
+		self.id().ends_with("sparrow")
 	}
 }
 
@@ -79,39 +93,53 @@ pub fn new_chain_ops(
 > {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	if config.chain_spec.is_template() {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue,
-			task_manager,
-			..
-		} = new_partial::<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch, _>(
-			config,
-			template_executive::import_queue_builder
-		)?;
-		Ok((
-			Arc::new(Client::Template(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
+		cfg_if! {
+			if #[cfg(template)] {
+				let PartialComponents {
+					client,
+					backend,
+					import_queue,
+					task_manager,
+					..
+				} = new_partial::<runtime_template::RuntimeApi, executive_template::ExecutorDispatch, _>(
+					config,
+					executive_template::import_queue_builder
+				)?;
+				Ok((
+					Arc::new(Client::Template(client)),
+					backend,
+					import_queue,
+					task_manager,
+				))
+			} else {
+				Err("The template runtime is not included with this build.")
+			}
+		}
+	} else if config.chain_spec.is_sparrow() {
+		cfg_if! {
+			if #[cfg(sparrow)] {
+				let PartialComponents {
+					client,
+					backend,
+					import_queue,
+					task_manager,
+					..
+				} = new_partial::<runtime_sparrow::RuntimeApi, executive_sparrow::ExecutorDispatch, _>(
+					config,
+					executive_sparrow::import_queue_builder
+				)?;
+				Ok((
+					Arc::new(Client::Sparrow(client)),
+					backend,
+					import_queue,
+					task_manager,
+				))
+			} else {
+				Err("The sparrow runtime is not included with this build.").map_err(Into::into)
+			}
+		}
 	} else {
-		let PartialComponents {
-			client,
-			backend,
-			import_queue	,
-			task_manager,
-			..
-		} = new_partial::<duality_runtime::template::RuntimeApi, template_executive::ExecutorDispatch, _>(
-			config,
-			template_executive::import_queue_builder
-		)?;
-		Ok((
-			Arc::new(Client::Template(client)),
-			backend,
-			import_queue,
-			task_manager,
-		))
+		Err("Invalid chain specification.").map_err(Into::into)
 	}
 }
 
@@ -220,19 +248,73 @@ pub fn new_partial<RuntimeApi, Executor, ImportQueueBuilder>(
 }
 
 pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
-	// FIXME: Should be substituted by a non-optional base runtime!
-	#[cfg(feature = "with-template-runtime")]
-	new_node::<
-		duality_runtime::template::RuntimeApi,
-		template_executive::ExecutorDispatch,
-		_,
-		_,
-		_,
-	>(
-		config,
-		template_executive::import_queue_builder,
-		template_executive::block_author_builder
-	).map_err(Into::into)
+	if config.chain_spec.is_template() {
+		cfg_if! {
+			if #[cfg(template)] {
+				new_node::<
+					runtime_template::RuntimeApi,
+					executive_template::ExecutorDispatch,
+					_,
+					_,
+					_,
+				>(
+					config,
+					executive_template::import_queue_builder,
+					executive_template::block_author_builder
+				).map_err(Into::into)
+			} else {
+				Err("The template runtime is not included with this build.").map_err(Into::into)
+			}
+		}
+	} else if config.chain_spec.is_sparrow() {
+		cfg_if! {
+			if #[cfg(sparrow)] {
+				new_node::<
+					runtime_sparrow::RuntimeApi,
+					executive_sparrow::ExecutorDispatch,
+					_,
+					_,
+					_,
+				>(
+					config,
+					executive_sparrow::import_queue_builder,
+					executive_sparrow::block_author_builder
+				).map_err(Into::into)
+			} else {
+				Err("The sparrow runtime is not included with this build.").map_err(Into::into)
+			}
+		}
+	} else {
+		cfg_if! {
+			if #[cfg(sparrow)] {
+				new_node::<
+					runtime_sparrow::RuntimeApi,
+					executive_sparrow::ExecutorDispatch,
+					_,
+					_,
+					_,
+				>(
+					config,
+					executive_sparrow::import_queue_builder,
+					executive_sparrow::block_author_builder
+				).map_err(Into::into)
+			} else if #[cfg(template)] {
+				new_node::<
+					runtime_template::RuntimeApi,
+					executive_template::ExecutorDispatch,
+					_,
+					_,
+					_,
+				>(
+					config,
+					executive_template::import_queue_builder,
+					executive_template::block_author_builder
+				).map_err(Into::into)
+			} else {
+				Err("No runtime is included in this build.").map_err(Into::into)
+			}
+		}
+	}
 }
 
 /// Builds a new instance for a full client.
