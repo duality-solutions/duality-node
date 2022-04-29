@@ -9,7 +9,7 @@ repository = 'https://github.com/dualitynetwork/duality-node/'
 build = 'build.rs'
 
 [[bin]]
-name = "duality"
+name = "node-duality"
 path = "src/main.rs"
 
 [package.metadata.docs.rs]
